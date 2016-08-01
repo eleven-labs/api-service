@@ -1,0 +1,48 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Fixture API
+host: domain.tld
+basePath: "/api"
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+definitions:
+  Foo:
+    type: object
+    required: [id, name]
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+paths:
+  /foo/{bar}:
+    post:
+      summary: Test path
+      operationId: addFoo
+      parameters:
+      - name: bar
+        in: path
+        type: string
+        required: true
+      - name: baz
+        in: query
+        type: string
+        required: true
+      - name: x-bat
+        in: header
+        type: string
+        required: true
+      - name: foo
+        in: body
+        required: true
+        schema:
+          $ref: "#/definitions/Foo"
+    responses:
+      201:
+        description: Foo created
+

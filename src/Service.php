@@ -15,7 +15,7 @@ use ElevenLabs\Swagger\Schema;
 /**
  * A client that provide API service commands (pretty much like Guzzle)
  */
-class Client
+class Service
 {
     /**
      * @var Schema
@@ -123,6 +123,10 @@ class Client
 
         $definition = $this->schema->findDefinitionByOperationId($name);
 
+        // @todo Find a may to guess the desired media type :\
+        $headers['Content-Type'] = 'application/json';
+
+
         foreach ($definition->parameters as $parameter) {
 
             $name = $parameter->name;
@@ -140,12 +144,13 @@ class Client
                     case 'body':
                         $body = json_encode($params[$name]);
                         break;
+                    default:
+                        throw new \RuntimeException('Unknown location: '.$parameter->in);
                 }
             }
         }
 
-        // @todo Find a may to guess the desired media type :\
-        $headers['Content-Type'] = 'application/json';
+
 
         $request = $this->messageFactory->createRequest(
             $definition->method,
