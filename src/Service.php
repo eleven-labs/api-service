@@ -126,9 +126,7 @@ class Service
         // @todo Find a may to guess the desired media type :\
         $headers['Content-Type'] = 'application/json';
 
-
         foreach ($definition->parameters as $parameter) {
-
             $name = $parameter->name;
             if (array_key_exists($name, $params)) {
                 switch ($parameter->in) {
@@ -144,20 +142,16 @@ class Service
                     case 'body':
                         $body = json_encode($params[$name]);
                         break;
-                    default:
-                        throw new \RuntimeException('Unknown location: '.$parameter->in);
                 }
             }
         }
 
-
+        $path = $this->uriTemplate->expand($definition->pattern, $uriParams);
+        $queryString = http_build_query($query);
 
         $request = $this->messageFactory->createRequest(
             $definition->method,
-            $this->baseUri
-                ->withPath($this->uriTemplate->expand($definition->pattern, $uriParams))
-                ->withQuery(http_build_query($query))
-            ,
+            $this->baseUri->withPath($path)->withQuery($queryString),
             $headers,
             $body
         );
