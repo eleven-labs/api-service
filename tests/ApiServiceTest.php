@@ -1,10 +1,10 @@
 <?php
-namespace ElevenLabs\Swagger\Http;
+namespace ElevenLabs\Api\Service;
 
-use ElevenLabs\Swagger\Exception\ConstraintViolations;
-use ElevenLabs\Swagger\Http\UriTemplate\UriTemplate;
-use ElevenLabs\Swagger\RequestValidator;
-use ElevenLabs\Swagger\Schema;
+use ElevenLabs\Api\Service\UriTemplate\UriTemplate;
+use ElevenLabs\Api\Validator\Exception\ConstraintViolations;
+use ElevenLabs\Api\Validator\RequestValidator;
+use ElevenLabs\Api\Validator\Schema;
 use Http\Client\HttpAsyncClient;
 use Http\Client\HttpClient;
 use Http\Message\MessageFactory;
@@ -16,7 +16,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
 use \RuntimeException;
 
-class ServiceTest extends TestCase
+class ApiServiceTest extends TestCase
 {
     /** @var ObjectProphecy|UriInterface */
     private $baseUri;
@@ -191,7 +191,7 @@ class ServiceTest extends TestCase
     }
 
     /**
-     * @return Service
+     * @return ApiService
      */
     public function getService($httpClient = null)
     {
@@ -199,7 +199,7 @@ class ServiceTest extends TestCase
             $httpClient = $this->prophesize(HttpClient::class);
         }
 
-        return new Service(
+        return new ApiService(
             $this->baseUri->reveal(),
             $this->uriTemplate->reveal(),
             $httpClient->reveal(),
@@ -211,7 +211,7 @@ class ServiceTest extends TestCase
 
     public function getServiceAsync()
     {
-        return new Service(
+        return new ApiService(
             $this->baseUri->reveal(),
             $this->uriTemplate->reveal(),
             $this->httpClient->willImplement(HttpAsyncClient::class)->reveal(),

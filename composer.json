@@ -8,23 +8,24 @@
     ],
     "autoload": {
         "psr-4": {
-            "ElevenLabs\\Swagger\\Http\\": "src/"
+            "ElevenLabs\\Api\\Service\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "ElevenLabs\\Swagger\\Http\\": "tests/"
+            "ElevenLabs\\Api\\Service\\": "tests/"
         }
     },
     "require": {
-        "eleven-labs/swagger": "dev-master",
+        "eleven-labs/api-validator": "^0.1",
         "php-http/httplug": "^1.0",
         "php-http/message": "^1.3"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.4",
         "php-http/mock-client": "^0.3.2",
-        "guzzlehttp/psr7": "^1.3"
+        "guzzlehttp/psr7": "^1.3",
+        "mikey179/vfsStream": "^1.6"
     },
     "scripts": {
         "test": "vendor/bin/phpunit"

@@ -1,10 +1,10 @@
 <?php
-namespace ElevenLabs\Swagger\Http\UriTemplate\Rize;
+namespace ElevenLabs\Api\Service\UriTemplate\Rize;
 
 use Rize\UriTemplate as RizeUriTemplate;
-use ElevenLabs\Swagger\Http\UriTemplate\UriTemplate as UriTemplateInterface;
+use ElevenLabs\Api\Service\UriTemplate\UriTemplate as UriTemplateInterface;
 
-class UriTemplate implements UriTemplateInterface
+class RizeUriTemplateAdapter implements UriTemplateInterface
 {
     private $uriTemplate;
 

@@ -1,21 +1,21 @@
 <?php
-namespace ElevenLabs\Swagger\Http;
+namespace ElevenLabs\Api\Service;
 
-use ElevenLabs\Swagger\Exception\ConstraintViolations;
+use ElevenLabs\Api\Validator\Exception\ConstraintViolations;
+use ElevenLabs\Api\Validator\RequestValidator;
+use ElevenLabs\Api\Validator\Schema;
 use Http\Client\HttpAsyncClient;
 use Http\Client\HttpClient;
 use Http\Message\MessageFactory;
 use Http\Promise\Promise;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
-use ElevenLabs\Swagger\Http\UriTemplate\UriTemplate;
-use ElevenLabs\Swagger\RequestValidator;
-use ElevenLabs\Swagger\Schema;
+use ElevenLabs\Api\Service\UriTemplate\UriTemplate;
 
 /**
  * A client that provide API service commands (pretty much like Guzzle)
  */
-class Service
+class ApiService
 {
     /**
      * @var Schema

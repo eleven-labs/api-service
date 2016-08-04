@@ -1,5 +1,5 @@
 <?php
-namespace ElevenLabs\Swagger\Http\UriTemplate;
+namespace ElevenLabs\Api\Service\UriTemplate;
 
 /**
  * URI Template Interface
