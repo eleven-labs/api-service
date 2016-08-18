@@ -7,13 +7,9 @@ interface CollectionProvider
 {
     /**
      * @param ResponseInterface $response
+     * @param array $decodedContent
      *
      * @return \Traversable
      */
-    public function getCollection(ResponseInterface $response);
-
-    /**
-     * @return string
-     */
-    public function getType();
+    public function getCollection(ResponseInterface $response, array $decodedContent);
 }

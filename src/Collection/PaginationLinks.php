@@ -3,22 +3,8 @@ namespace ElevenLabs\Api\Service\Collection;
 
 use Psr\Http\Message\UriInterface;
 
-interface Pageable
+interface PaginationLinks
 {
-    /**
-     * @return int
-     */
-    public function getTotalPages();
-
-    /**
-     * @return int
-     */
-    public function getTotalItems();
-
-    /**
-     * @return int
-     */
-    public function getPerPage();
     /**
      * @return UriInterface
      */

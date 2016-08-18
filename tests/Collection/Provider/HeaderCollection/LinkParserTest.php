@@ -1,8 +1,6 @@
 <?php
-namespace ElevenLabs\Swagger\Http\Collection\RFC5988;
+namespace ElevenLabs\Api\Service\Collection\Provider\HeaderCollection;
 
-
-use ElevenLabs\Api\Service\Collection\Provider\JsonRfc5988\LinkParser;
 use PHPUnit\Framework\TestCase;
 
 class LinkParserTest extends TestCase

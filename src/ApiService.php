@@ -1,6 +1,8 @@
 <?php
 namespace ElevenLabs\Api\Service;
 
+use ElevenLabs\Api\Service\Collection\CollectionProvider;
+use ElevenLabs\Api\Service\Decoder\Decoder;
 use ElevenLabs\Api\Validator\Exception\ConstraintViolations;
 use ElevenLabs\Api\Validator\RequestValidator;
 use ElevenLabs\Api\Validator\Schema;
@@ -48,6 +50,16 @@ class ApiService
     private $baseUri;
 
     /**
+     * @var Decoder
+     */
+    private $decoder;
+
+    /**
+     * @var CollectionProvider
+     */
+    private $collectionProvider;
+
+    /**
      * Return the decoded response
      */
     const FETCH_DATA = 'data';
@@ -64,6 +76,8 @@ class ApiService
      * @param MessageFactory $messageFactory
      * @param Schema $schema
      * @param RequestValidator $validator
+     * @param Decoder $decoder
+     * @param CollectionProvider $collectionProvider
      */
     public function __construct(
         UriInterface $baseUri,
@@ -71,7 +85,9 @@ class ApiService
         HttpClient $client,
         MessageFactory $messageFactory,
         Schema $schema,
-        RequestValidator $validator
+        RequestValidator $validator,
+        Decoder $decoder, // not mandatory, should be choosed depending of the response content-type
+        CollectionProvider $collectionProvider // not mandatory, should be chosen depending of what is defined in the swagger file
     ) {
         $this->baseUri = $baseUri;
         $this->uriTemplate = $uriTemplate;
@@ -79,28 +95,38 @@ class ApiService
         $this->validator = $validator;
         $this->client = $client;
         $this->messageFactory = $messageFactory;
+        $this->decoder = $decoder;
+        $this->collectionProvider = $collectionProvider;
     }
 
     /**
-     * @param $name
+     * @param $operationId
      * @param array $params
      *
      * @return ResponseInterface
      */
-    public function call($name, array $params = [], $fetch = self::FETCH_RESPONSE)
+    public function call($operationId, array $params = [], $fetch = self::FETCH_RESPONSE)
     {
-        $response =  $this->client->sendRequest($this->getRequestFor($name, $params));
+        $definition = $this->schema->findDefinitionByOperationId($operationId);
+        $response =  $this->client->sendRequest(
+            $this->getRequestFrom($definition, $params)
+        );
+
+        if ($fetch === self::FETCH_DATA) {
+            return $this->getData($response, $definition);
+        }
 
         return $response;
     }
 
     /**
-     * @param string $name
+     * @param string $operationId
      * @param array $params
+     * @param string $fetch
      *
      * @return Promise
      */
-    public function callAsync($name, array $params = [], $fetch = self::FETCH_RESPONSE)
+    public function callAsync($operationId, array $params = [], $fetch = self::FETCH_RESPONSE)
     {
         if (! $this->client instanceof HttpAsyncClient) {
             throw new \RuntimeException(
@@ -111,30 +137,63 @@ class ApiService
             );
         }
 
-        $request = $this->getRequestFor($name, $params);
+        $definition = $this->schema->findDefinitionByOperationId($operationId);
+        $request = $this->getRequestFrom($definition, $params);
         $promise = $this->client->sendAsyncRequest($request);
+
+        if ($fetch === self::FETCH_DATA) {
+            return $promise->then(function (ResponseInterface $response) use ($definition) {
+                return $this->getData($response, $definition);
+            });
+        }
 
         return $promise;
     }
 
     /**
+     * Decode and return data from a given Request object
+     *
+     * @param ResponseInterface $response
+     * @param \stdClass $definition
+     *
+     * @return \Traversable|array
+     */
+    private function getData(ResponseInterface $response, \stdClass $definition)
+    {
+        $decodedContent = $this->decoder->decode($response);
+        if ($this->isCollection($definition)) {
+            return $this->collectionFactory->createCollection($response, $decodedContent);
+        }
+
+        return $decodedContent;
+    }
+
+    /**
+     * @param \stdClass $definition
+     *
+     * @return bool
+     */
+    private function isCollection(\stdClass $definition)
+    {
+        return (isset($definition->schema) && $definition->schema->type === 'array');
+    }
+
+    /**
      * Create an PSR-7 Request from the API Specification
      *
-     * @param string $name The name of the desired operation
+     * @param object $definition The name of the desired operation
      * @param array $params An array of parameters
      *
      * @return \Psr\Http\Message\RequestInterface
      *
      * @throws ConstraintViolations
      */
-    private function getRequestFor($name, array $params)
+    private function getRequestFrom($definition, array $params)
     {
         $query = [];
         $headers = [];
         $uriParams = [];
         $body = null;
-
-        $definition = $this->schema->findDefinitionByOperationId($name);
 
         // @todo Find a may to guess the desired media type :\
         $headers['Content-Type'] = 'application/json';

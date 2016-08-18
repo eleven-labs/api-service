@@ -1,5 +1,5 @@
 <?php
-namespace ElevenLabs\Api\Service\Collection\Provider\JsonRfc5988;
+namespace ElevenLabs\Api\Service\Collection\Provider\HeaderCollection;
 
 class LinkParser
 {

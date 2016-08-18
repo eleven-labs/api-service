@@ -1,6 +1,8 @@
 <?php
 namespace ElevenLabs\Api\Service;
 
+use ElevenLabs\Api\Service\Collection\CollectionProvider;
+use ElevenLabs\Api\Service\Decoder\Decoder;
 use ElevenLabs\Api\Service\UriTemplate\UriTemplate;
 use ElevenLabs\Api\Validator\Exception\ConstraintViolations;
 use ElevenLabs\Api\Validator\RequestValidator;
@@ -36,6 +38,8 @@ class ApiServiceTest extends TestCase
         $this->messageFactory = $this->prophesize(MessageFactory::class);
         $this->swaggerSchema = $this->prophesize(Schema::class);
         $this->requestValidator = $this->prophesize(RequestValidator::class);
+        $this->decoder = $this->prophesize(Decoder::class);
+        $this->collectionProvider = $this->prophesize(CollectionProvider::class);
     }
 
     public function testItShouldTransformBodyParamIntoJson()
@@ -205,7 +209,9 @@ class ApiServiceTest extends TestCase
             $httpClient->reveal(),
             $this->messageFactory->reveal(),
             $this->swaggerSchema->reveal(),
-            $this->requestValidator->reveal()
+            $this->requestValidator->reveal(),
+            $this->decoder->reveal(),
+            $this->collectionProvider->reveal()
         );
     }
 
@@ -217,7 +223,9 @@ class ApiServiceTest extends TestCase
             $this->httpClient->willImplement(HttpAsyncClient::class)->reveal(),
             $this->messageFactory->reveal(),
             $this->swaggerSchema->reveal(),
-            $this->requestValidator->reveal()
+            $this->requestValidator->reveal(),
+            $this->decoder->reveal(),
+            $this->collectionProvider->reveal()
         );
     }
 
