@@ -48,6 +48,16 @@ class ApiService
     private $baseUri;
 
     /**
+     * Return the decoded response
+     */
+    const FETCH_DATA = 'data';
+
+    /**
+     * Return a ResponseInterface
+     */
+    const FETCH_RESPONSE = 'response';
+
+    /**
      * @param UriInterface $baseUri The BaseUri of your API
      * @param UriTemplate $uriTemplate Used to expand Uri pattern in the API definition
      * @param HttpClient $client An HTTP client
@@ -77,9 +87,11 @@ class ApiService
      *
      * @return ResponseInterface
      */
-    public function call($name, array $params = [])
+    public function call($name, array $params = [], $fetch = self::FETCH_RESPONSE)
     {
-        return $this->client->sendRequest($this->getRequestFor($name, $params));
+        $response =  $this->client->sendRequest($this->getRequestFor($name, $params));
+
+        return $response;
     }
 
     /**
@@ -88,7 +100,7 @@ class ApiService
      *
      * @return Promise
      */
-    public function callAsync($name, array $params = [])
+    public function callAsync($name, array $params = [], $fetch = self::FETCH_RESPONSE)
     {
         if (! $this->client instanceof HttpAsyncClient) {
             throw new \RuntimeException(
@@ -100,8 +112,9 @@ class ApiService
         }
 
         $request = $this->getRequestFor($name, $params);
+        $promise = $this->client->sendAsyncRequest($request);
 
-        return $this->client->sendAsyncRequest($request);
+        return $promise;
     }
 
     /**
