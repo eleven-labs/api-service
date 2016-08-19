@@ -86,8 +86,8 @@ class ApiService
         MessageFactory $messageFactory,
         Schema $schema,
         RequestValidator $validator,
-        Decoder $decoder, // not mandatory, should be choosed depending of the response content-type
-        CollectionProvider $collectionProvider // not mandatory, should be chosen depending of what is defined in the swagger file
+        Decoder $decoder,
+        CollectionProvider $collectionProvider
     ) {
         $this->baseUri = $baseUri;
         $this->uriTemplate = $uriTemplate;
@@ -160,9 +160,9 @@ class ApiService
      */
     private function getData(ResponseInterface $response, \stdClass $definition)
     {
-        $decodedContent = $this->decoder->decode($response);
+        $decodedContent = $this->decoder->decode($response->getBody());
         if ($this->isCollection($definition)) {
-            return $this->collectionFactory->createCollection($response, $decodedContent);
+            return $this->collectionProvider->getCollection($response, $decodedContent);
         }
 
         return $decodedContent;
@@ -191,12 +191,9 @@ class ApiService
     private function getRequestFrom($definition, array $params)
     {
         $query = [];
-        $headers = [];
+        $headers = ['Content-Type' => 'application/json'];
         $uriParams = [];
         $body = null;
-
-        // @todo Find a may to guess the desired media type :\
-        $headers['Content-Type'] = 'application/json';
 
         foreach ($definition->parameters as $parameter) {
             $name = $parameter->name;

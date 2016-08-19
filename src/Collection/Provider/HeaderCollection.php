@@ -58,16 +58,16 @@ class HeaderCollection implements CollectionProvider
      */
     public function getCollection(ResponseInterface $response, array $decodedContent)
     {
-        $paginationMeta = $this->getPaginationMetadata($response);
-        $paginationLinks = $this->getPaginationLinks($response);
+        $meta = $this->getPaginationMetadata($response);
+        $links = $this->getPaginationLinks($response);
 
         return new PagedCollection(
             $decodedContent,
-            $paginationMeta['page'],
-            $paginationMeta['perPage'],
-            $paginationMeta['totalPages'],
-            $paginationMeta['totalEntries'],
-            $paginationLinks
+            $meta['page'],
+            $meta['perPage'],
+            $meta['totalPages'],
+            $meta['totalEntries'],
+            $links
         );
     }
 
@@ -112,7 +112,7 @@ class HeaderCollection implements CollectionProvider
         return array_map(
             function ($headerName) use ($response) {
                 $value = $response->getHeaderLine($headerName);
-                if (! ctype_digit($value)) {
+                if (!ctype_digit($value)) {
                     throw new \LogicException(sprintf('The value of the header "%s" should be an integer', $headerName));
                 }
 
