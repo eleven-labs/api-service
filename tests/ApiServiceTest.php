@@ -1,271 +1,50 @@
 <?php
 namespace ElevenLabs\Api\Service;
 
-use ElevenLabs\Api\Service\Collection\CollectionProvider;
-use ElevenLabs\Api\Service\Decoder\Decoder;
-use ElevenLabs\Api\Service\UriTemplate\UriTemplate;
-use ElevenLabs\Api\Validator\Exception\ConstraintViolations;
+use ElevenLabs\Api\Decoder\Adapter\SymfonyDecoderAdapter;
+use ElevenLabs\Api\Factory\SwaggerSchemaFactory;
+use ElevenLabs\Api\Service\Denormalizer\ResourceDenormalizer;
+use ElevenLabs\Api\Service\Serializer\Adapter\SymfonySerializerAdapter;
+use ElevenLabs\Api\Service\UriTemplate\Rize\RizeUriTemplateAdapter;
 use ElevenLabs\Api\Validator\RequestValidator;
-use ElevenLabs\Api\Validator\Schema;
-use Http\Client\HttpAsyncClient;
-use Http\Client\HttpClient;
-use Http\Message\MessageFactory;
-use Http\Promise\Promise;
+use GuzzleHttp\Psr7\Uri;
+use Http\Discovery\HttpClientDiscovery;
+use Http\Discovery\MessageFactoryDiscovery;
+use JsonSchema\Validator;
 use PHPUnit\Framework\TestCase;
-use Prophecy\Argument;
-use Prophecy\Prophecy\ObjectProphecy;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\UriInterface;
-use \RuntimeException;
+use Rize\UriTemplate;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Serializer;
 
 class ApiServiceTest extends TestCase
 {
-    /** @var ObjectProphecy|UriInterface */
-    private $baseUri;
-    /** @var ObjectProphecy|UriTemplate */
-    private $uriTemplate;
-    /** @var ObjectProphecy|MessageFactory */
-    private $messageFactory;
-    /** @var ObjectProphecy|Schema */
-    private $swaggerSchema;
-    /** @var ObjectProphecy|RequestValidator */
-    private $requestValidator;
-
-    public function setUp()
+    /** @test */
+    public function itWork()
     {
-        $this->baseUri = $this->prophesize(UriInterface::class);
-        $this->uriTemplate = $this->prophesize(UriTemplate::class);
-        $this->messageFactory = $this->prophesize(MessageFactory::class);
-        $this->swaggerSchema = $this->prophesize(Schema::class);
-        $this->requestValidator = $this->prophesize(RequestValidator::class);
-        $this->decoder = $this->prophesize(Decoder::class);
-        $this->collectionProvider = $this->prophesize(CollectionProvider::class);
-    }
+        $schemaFactory = new SwaggerSchemaFactory();
+        $jsonEncoder = new JsonEncoder();
+        $schema = $schemaFactory->createSchema('file://'.__DIR__.'/fixtures/foo.yml');
 
-    public function testItShouldTransformBodyParamIntoJson()
-    {
-        $expectedJson = '{"id":1234,"name":"John Doe"}';
+        $apiService = new ApiService(
+            new Uri('https://httpbin.org'),
+            new RizeUriTemplateAdapter(new UriTemplate()),
+            HttpClientDiscovery::find(),
+            MessageFactoryDiscovery::find(),
+            $schema,
+            new RequestValidator($schema, new Validator(), new SymfonyDecoderAdapter($jsonEncoder)),
+            new SymfonySerializerAdapter(new Serializer([new ResourceDenormalizer()],[$jsonEncoder]))
+        );
 
-        $definition  = [
-            'method' => 'POST',
-            'pattern' => '/api/foo',
-            'parameters' => [
-                [
-                    'name' => 'a_body',
-                    'in' => 'body',
-                    'required' => true,
-                    'schema' => [
-                        'type' => 'object'
-                    ]
-                ]
-            ]
-        ];
-
-        $this->swaggerSchema->findDefinitionByOperationId('addFoo')->willReturn(self::arrayToObject($definition));
-
-        $this->stubBaseUri();
-        $this->stubUriTemplate();
-        $this->stubRequestValidator();
-
-        $this->messageFactory->createRequest(
-            Argument::any(),
-            Argument::any(),
-            Argument::any(),
-            Argument::exact($expectedJson)
-        )->willReturn($this->prophesize(RequestInterface::class));
-
-        $this->getService()->call(
-            'addFoo',
+        $rep = $apiService->call(
+            'getSomething',
             [
-                'a_body' => [
-                    'id' => 1234,
-                    'name' => 'John Doe'
+                'bar' => 'cat',
+                'body' => [
+                    'id' => 1,
+                    'name' => 'chips'
                 ]
-            ]
-        );
-    }
+            ]);
 
-    public function testItBuildTheResourceUri()
-    {
-        $definition  = [
-            'method' => 'GET',
-            'pattern' => '/api/foo/{id}',
-            'parameters' => [
-                [
-                    'name' => 'id',
-                    'in' => 'path',
-                    'type' => 'integer',
-                    'required' => true,
-                ],
-                [
-                    'name' => 'bar',
-                    'in' => 'query',
-                    'type' => 'string',
-                    'required' => true,
-                ]
-            ]
-        ];
-
-        $this->uriTemplate->expand('/api/foo/{id}', ['id' => 123])->willReturn('/api/foo/123');
-        $this->baseUri->withPath('/api/foo/123')->willReturn($this->baseUri);
-        $this->baseUri->withQuery('bar=value')->willReturn($this->baseUri);
-        $this->swaggerSchema->findDefinitionByOperationId('getFoo')->willReturn(self::arrayToObject($definition));
-
-        $this->stubRequestValidator();
-        $this->stubMessageFactory();
-
-        $this->getService()->call('getFoo', ['id' => 123, 'bar' => 'value']);
-    }
-
-    public function testItShouldHandleRequestHeaders()
-    {
-        $expectedHeaders = [
-            'Content-Type' => 'application/json',
-            'x-bar' => 'value'
-        ];
-
-        $definition  = [
-            'method' => 'GET',
-            'pattern' => '/api/foo',
-            'parameters' => [
-                [
-                    'name' => 'x-bar',
-                    'in' => 'header',
-                    'type' => 'integer',
-                    'required' => true,
-                ]
-            ]
-        ];
-
-        $this->swaggerSchema->findDefinitionByOperationId('addFoo')->willReturn(self::arrayToObject($definition));
-
-        $this->stubBaseUri();
-        $this->stubUriTemplate();
-        $this->stubRequestValidator();
-
-        $this->messageFactory->createRequest(
-            Argument::any(),
-            Argument::any(),
-            Argument::exact($expectedHeaders),
-            Argument::any()
-        )->willReturn($this->prophesize(RequestInterface::class));
-
-        $this->getService()->call('addFoo', ['x-bar' => 'value']);
-    }
-
-    public function testItShouldThrowAConstraintViolationsException()
-    {
-        $this->expectException(ConstraintViolations::class);
-
-        $this->stubSwaggerSchema();
-        $this->stubBaseUri();
-        $this->stubMessageFactory();
-
-        $this->requestValidator->validateRequest(Argument::type(RequestInterface::class))->willReturn(null);
-        $this->requestValidator->hasViolations()->willReturn(true);
-        $this->requestValidator->getConstraintViolationsException()->willReturn(
-            $this->prophesize(ConstraintViolations::class)
-        );
-
-        $this->getService()->call('getFoo');
-    }
-
-    public function testItThrowAnExceptionWhenUsingCallAsyncWithASynchronousHttpClient()
-    {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessageRegExp('/does not support async request$/');
-        $this->getService()->callAsync('getFoo');
-    }
-
-    public function testItReturnAPromiseOnCallAsync()
-    {
-        $httpAsyncClient = $this->prophesize(HttpClient::class)->willImplement(HttpAsyncClient::class);
-        $httpAsyncClient->sendAsyncRequest(Argument::type(RequestInterface::class))->willReturn(
-            $this->prophesize(Promise::class)
-        );
-
-        $this->stubSwaggerSchema();
-        $this->stubBaseUri();
-        $this->stubMessageFactory();
-        $this->stubRequestValidator();
-
-        $promise = $this->getService($httpAsyncClient)->callAsync('getFoo');
-
-        self::assertInstanceOf(Promise::class, $promise);
-    }
-
-    /**
-     * @return ApiService
-     */
-    public function getService($httpClient = null)
-    {
-        if ($httpClient === null) {
-            $httpClient = $this->prophesize(HttpClient::class);
-        }
-
-        return new ApiService(
-            $this->baseUri->reveal(),
-            $this->uriTemplate->reveal(),
-            $httpClient->reveal(),
-            $this->messageFactory->reveal(),
-            $this->swaggerSchema->reveal(),
-            $this->requestValidator->reveal(),
-            $this->decoder->reveal(),
-            $this->collectionProvider->reveal()
-        );
-    }
-
-    public function getServiceAsync()
-    {
-        return new ApiService(
-            $this->baseUri->reveal(),
-            $this->uriTemplate->reveal(),
-            $this->httpClient->willImplement(HttpAsyncClient::class)->reveal(),
-            $this->messageFactory->reveal(),
-            $this->swaggerSchema->reveal(),
-            $this->requestValidator->reveal(),
-            $this->decoder->reveal(),
-            $this->collectionProvider->reveal()
-        );
-    }
-
-    private function stubSwaggerSchema()
-    {
-        $emptyDefinition = [
-            'method' => 'GET',
-            'pattern' => '/api/foo',
-            'parameters' => []
-        ];
-
-        $this->swaggerSchema->findDefinitionByOperationId(Argument::any())->willReturn(self::arrayToObject($emptyDefinition));
-    }
-
-    private function stubBaseUri()
-    {
-        $this->baseUri->withPath(Argument::any())->willReturn($this->baseUri);
-        $this->baseUri->withQuery(Argument::any())->willReturn($this->baseUri);
-    }
-
-    private function stubUriTemplate()
-    {
-        $this->uriTemplate->expand(Argument::cetera())->willReturn(null);
-    }
-
-    private function stubRequestValidator()
-    {
-        $this->requestValidator->validateRequest(Argument::any())->willReturn(null);
-        $this->requestValidator->hasViolations()->willReturn(false);
-    }
-
-    private function stubMessageFactory()
-    {
-        $this->messageFactory->createRequest(Argument::cetera())->willReturn(
-            $this->prophesize(RequestInterface::class)
-        );
-    }
-
-    private static function arrayToObject(array $array)
-    {
-        return json_decode(json_encode($array));
+        var_dump($rep);
     }
 }

@@ -1,18 +1,20 @@
 <?php
 namespace ElevenLabs\Api\Service;
 
-use ElevenLabs\Api\Service\Collection\CollectionProvider;
-use ElevenLabs\Api\Service\Decoder\Decoder;
-use ElevenLabs\Api\Validator\Exception\ConstraintViolations;
+use ElevenLabs\Api\Definition\RequestDefinition;
+use ElevenLabs\Api\Definition\ResponseDefinition;
+use ElevenLabs\Api\Schema;
+use ElevenLabs\Api\Service\Resource\Resource;
 use ElevenLabs\Api\Validator\RequestValidator;
-use ElevenLabs\Api\Validator\Schema;
 use Http\Client\HttpAsyncClient;
 use Http\Client\HttpClient;
 use Http\Message\MessageFactory;
 use Http\Promise\Promise;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use ElevenLabs\Api\Service\UriTemplate\UriTemplate;
+use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * A client that provide API service commands (pretty much like Guzzle)
@@ -50,24 +52,9 @@ class ApiService
     private $baseUri;
 
     /**
-     * @var Decoder
+     * @var SerializerInterface
      */
-    private $decoder;
-
-    /**
-     * @var CollectionProvider
-     */
-    private $collectionProvider;
-
-    /**
-     * Return the decoded response
-     */
-    const FETCH_DATA = 'data';
-
-    /**
-     * Return a ResponseInterface
-     */
-    const FETCH_RESPONSE = 'response';
+    private $serializer;
 
     /**
      * @param UriInterface $baseUri The BaseUri of your API
@@ -76,8 +63,7 @@ class ApiService
      * @param MessageFactory $messageFactory
      * @param Schema $schema
      * @param RequestValidator $validator
-     * @param Decoder $decoder
-     * @param CollectionProvider $collectionProvider
+     * @param SerializerInterface $serializer
      */
     public function __construct(
         UriInterface $baseUri,
@@ -86,8 +72,7 @@ class ApiService
         MessageFactory $messageFactory,
         Schema $schema,
         RequestValidator $validator,
-        Decoder $decoder,
-        CollectionProvider $collectionProvider
+        SerializerInterface $serializer
     ) {
         $this->baseUri = $baseUri;
         $this->uriTemplate = $uriTemplate;
@@ -95,38 +80,36 @@ class ApiService
         $this->validator = $validator;
         $this->client = $client;
         $this->messageFactory = $messageFactory;
-        $this->decoder = $decoder;
-        $this->collectionProvider = $collectionProvider;
+        $this->serializer = $serializer;
     }
 
     /**
      * @param $operationId
      * @param array $params
      *
-     * @return ResponseInterface
+     * @return mixed
      */
-    public function call($operationId, array $params = [], $fetch = self::FETCH_RESPONSE)
+    public function call($operationId, array $params = [])
     {
-        $definition = $this->schema->findDefinitionByOperationId($operationId);
-        $response =  $this->client->sendRequest(
-            $this->getRequestFrom($definition, $params)
+        $requestDefinition = $this->schema->getRequestDefinition($operationId);
+        $request = $this->createRequestFromDefinition($requestDefinition, $params);
+        $response =  $this->client->sendRequest($request);
+
+        $data = $this->getDataFromResponse(
+            $response,
+            $requestDefinition->getResponseDefinition($response->getStatusCode())
         );
 
-        if ($fetch === self::FETCH_DATA) {
-            return $this->getData($response, $definition);
-        }
-
-        return $response;
+        return $data;
     }
 
     /**
      * @param string $operationId
      * @param array $params
-     * @param string $fetch
      *
      * @return Promise
      */
-    public function callAsync($operationId, array $params = [], $fetch = self::FETCH_RESPONSE)
+    public function callAsync($operationId, array $params = [])
     {
         if (! $this->client instanceof HttpAsyncClient) {
             throw new \RuntimeException(
@@ -137,99 +120,120 @@ class ApiService
             );
         }
 
-        $definition = $this->schema->findDefinitionByOperationId($operationId);
-        $request = $this->getRequestFrom($definition, $params);
+        $definition = $this->schema->getRequestDefinition($operationId);
+        $request = $this->createRequestFromDefinition($definition, $params);
         $promise = $this->client->sendAsyncRequest($request);
-
-        if ($fetch === self::FETCH_DATA) {
-            return $promise->then(function (ResponseInterface $response) use ($definition) {
-                return $this->getData($response, $definition);
-            });
-        }
 
         return $promise;
     }
 
     /**
-     * Decode and return data from a given Request object
-     *
-     * @param ResponseInterface $response
-     * @param \stdClass $definition
-     *
-     * @return \Traversable|array
-     */
-    private function getData(ResponseInterface $response, \stdClass $definition)
-    {
-        $decodedContent = $this->decoder->decode($response->getBody());
-        if ($this->isCollection($definition)) {
-            return $this->collectionProvider->getCollection($response, $decodedContent);
-        }
-
-        return $decodedContent;
-    }
-
-    /**
-     * @param \stdClass $definition
-     *
-     * @return bool
-     */
-    private function isCollection(\stdClass $definition)
-    {
-        return (isset($definition->schema) && $definition->schema->type === 'array');
-    }
-
-    /**
      * Create an PSR-7 Request from the API Specification
      *
-     * @param object $definition The name of the desired operation
+     * @param RequestDefinition $definition
      * @param array $params An array of parameters
      *
-     * @return \Psr\Http\Message\RequestInterface
-     *
-     * @throws ConstraintViolations
+     * @return RequestInterface
      */
-    private function getRequestFrom($definition, array $params)
+    private function createRequestFromDefinition(RequestDefinition $definition, array $params)
     {
+        $contentType = $definition->getContentTypes()[0];
+        $requestParameters = $definition->getRequestParameters();
+        $path = [];
         $query = [];
-        $headers = ['Content-Type' => 'application/json'];
-        $uriParams = [];
+        $headers = ['Content-Type' => $contentType];
         $body = null;
 
-        foreach ($definition->parameters as $parameter) {
-            $name = $parameter->name;
-            if (array_key_exists($name, $params)) {
-                switch ($parameter->in) {
-                    case 'query':
-                        $query[$name] = $params[$name];
-                        break;
-                    case 'path';
-                        $uriParams[$name] = $params[$name];
-                        break;
-                    case 'header';
-                        $headers[$name] = $params[$name];
-                        break;
-                    case 'body':
-                        $body = json_encode($params[$name]);
-                        break;
-                }
+        foreach ($params as $name => $value) {
+            $requestParameter = $requestParameters->getByName($name);
+            if ($requestParameter === null) {
+                throw new \InvalidArgumentException($name. ' is not a defined request parameter');
+            }
+
+            switch ($requestParameter->getLocation()) {
+                case 'path':
+                    $path[$name] = $value;
+                    break;
+                case 'query':
+                    $query[$name] = $value;
+                    break;
+                case 'header':
+                    $query[$name] = $value;
+                    break;
+                case 'body':
+                    $body = $this->serializeBody($value, $contentType);
             }
         }
 
-        $path = $this->uriTemplate->expand($definition->pattern, $uriParams);
-        $queryString = http_build_query($query);
-
         $request = $this->messageFactory->createRequest(
-            $definition->method,
-            $this->baseUri->withPath($path)->withQuery($queryString),
+            $definition->getMethod(),
+            $this->buildRequestUri($definition->getPathTemplate(), $path, $query),
             $headers,
             $body
         );
 
-        $this->validator->validateRequest($request);
-        if ($this->validator->hasViolations()) {
-            throw $this->validator->getConstraintViolationsException();
-        }
-
         return $request;
     }
+
+    private function buildRequestUri($pathTemplate, array $pathParameters, array $queryParameters)
+    {
+        $path = $this->uriTemplate->expand($pathTemplate, $pathParameters);
+        $query = http_build_query($queryParameters);
+
+        return $this->baseUri->withPath($path)->withQuery($query);
+    }
+
+    /**
+     * @param array $decodedBody
+     * @param string $contentType
+     *
+     * @return string
+     */
+    private function serializeBody(array $decodedBody, $contentType)
+    {
+        return $this->serializer->serialize(
+            $decodedBody,
+            $this->extractFormatFromContentType($contentType)
+        );
+    }
+
+    /**
+     * Transform a given response into a denormalized object
+     *
+     * @todo Support other type the Resource::class is forced by now
+     *
+     * @param ResponseInterface $response
+     * @param ResponseDefinition $definition
+     *
+     * @return object|Resource
+     */
+    private function getDataFromResponse(ResponseInterface $response, ResponseDefinition $definition)
+    {
+        return $this->serializer->deserialize(
+            (string) $response->getBody(),
+            Resource::class,
+            $this->extractFormatFromContentType($response->getHeaderLine('Content-Type')),
+            [
+                'response' => $response,
+                'definition' => $definition
+            ]
+        );
+    }
+
+    /**
+     * @param string $contentType
+     *
+     * @return string
+     */
+    private function extractFormatFromContentType($contentType)
+    {
+        $parts = explode('/', $contentType);
+        $format = array_pop($parts);
+        if (false !== $pos = strpos($format, '+')) {
+            $format = substr($format, $pos+1);
+        }
+
+        return $format;
+    }
+
 }

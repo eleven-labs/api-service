@@ -2,8 +2,8 @@ swagger: '2.0'
 info:
   version: 1.0.0
   title: Fixture API
-host: domain.tld
-basePath: "/api"
+host: httpbin.org
+
 schemes:
   - http
 consumes:
@@ -20,29 +20,23 @@ definitions:
       name:
         type: string
 paths:
-  /foo/{bar}:
-    post:
+  /get:
+    get:
       summary: Test path
-      operationId: addFoo
+      operationId: getSomething
       parameters:
       - name: bar
         in: path
         type: string
         required: true
-      - name: baz
-        in: query
-        type: string
-        required: true
-      - name: x-bat
-        in: header
-        type: string
-        required: true
-      - name: foo
+      - name: body
         in: body
         required: true
         schema:
           $ref: "#/definitions/Foo"
-    responses:
-      201:
-        description: Foo created
+      responses:
+        200:
+          description: Foo created
+          schema:
+            $ref: "#/definitions/Foo"
 
