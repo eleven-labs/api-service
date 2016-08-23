@@ -2,7 +2,7 @@
 namespace ElevenLabs\Api\Service\Pagination;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
-use ElevenLabs\Api\Service\Resource\Pagination;
+use ElevenLabs\Api\Service\Pagination\Pagination;
 use Psr\Http\Message\ResponseInterface;
 
 interface PaginationProvider

@@ -1,6 +1,8 @@
 <?php
 namespace ElevenLabs\Api\Service\Resource;
 
+use ElevenLabs\Api\Service\Pagination\Pagination;
+
 class Collection extends Item implements \IteratorAggregate
 {
     /**

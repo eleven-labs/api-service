@@ -98,7 +98,7 @@ class PaginationHeader implements PaginationProvider
             if (isset($matches[1]) && in_array($matches[1], ['next', 'prev', 'first', 'last'])) {
                 $parts = explode(';', $headerLink);
                 $url = trim($parts[0], " <>");
-                $pagination[$matches[1]] = $url;
+                $links[$matches[1]] = $url;
             }
         }
 
