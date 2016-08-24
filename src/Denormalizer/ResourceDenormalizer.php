@@ -6,6 +6,7 @@ use ElevenLabs\Api\Service\Pagination\PaginationProvider;
 use ElevenLabs\Api\Service\Resource\Collection;
 use ElevenLabs\Api\Service\Resource\Item;
 use ElevenLabs\Api\Service\Resource\Resource;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
@@ -24,11 +25,25 @@ class ResourceDenormalizer implements DenormalizerInterface
         /** @var ResponseInterface $response */
         $response = $context['response'];
 
-        /** @var ResponseDefinition $definition */
-        $definition = $context['definition'];
+        /** @var RequestInterface $request */
+        $request = $context['request'];
 
+        /** @var ResponseDefinition $definition */
+        $definition = $context['responseDefinition'];
+
+        if (! $definition->hasBodySchema()) {
+            throw new \LogicException(
+                sprintf(
+                    'Cannot transform the response into a resource. You need to provide a schema for response %d in %s %s',
+                    $response->getStatusCode(),
+                    $request->getMethod(),
+                    $request->getUri()->getPath()
+                )
+            );
+        }
+
+        $schema = $definition->getBodySchema();
         $meta = ['headers' => $response->getHeaders()];
-        $schema = $definition->getSchema();
 
         if ($schema->type === 'array') {
             $pagination = null;

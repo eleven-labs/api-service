@@ -131,7 +131,8 @@ class ApiService
             $response,
             $requestDefinition->getResponseDefinition(
                 $response->getStatusCode()
-            )
+            ),
+            $request
         );
 
         return $data;
@@ -161,13 +162,14 @@ class ApiService
         $promise = $this->client->sendAsyncRequest($request);
 
         return $promise->then(
-            function (ResponseInterface $response) use ($requestDefinition) {
+            function (ResponseInterface $response) use ($request, $requestDefinition) {
 
                 return $this->getDataFromResponse(
                     $response,
                     $requestDefinition->getResponseDefinition(
                         $response->getStatusCode()
-                    )
+                    ),
+                    $request
                 );
             }
         );
@@ -314,11 +316,15 @@ class ApiService
      *
      * @param ResponseInterface $response
      * @param ResponseDefinition $definition
+     * @param RequestInterface $request
      *
      * @return Resource|mixed
      */
-    private function getDataFromResponse(ResponseInterface $response, ResponseDefinition $definition)
-    {
+    private function getDataFromResponse(
+        ResponseInterface $response,
+        ResponseDefinition $definition,
+        RequestInterface $request
+    ) {
         if ($this->config['returnResponse'] === true) {
             return $response;
         }
@@ -329,7 +335,8 @@ class ApiService
             $this->extractFormatFromContentType($response->getHeaderLine('Content-Type')),
             [
                 'response' => $response,
-                'definition' => $definition
+                'responseDefinition' => $definition,
+                'request' => $request,
             ]
         );
     }
