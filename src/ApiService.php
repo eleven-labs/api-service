@@ -2,10 +2,13 @@
 namespace ElevenLabs\Api\Service;
 
 use Assert\Assertion;
+use ElevenLabs\Api\Decoder\DecoderUtils;
 use ElevenLabs\Api\Definition\RequestDefinition;
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Schema;
 use ElevenLabs\Api\Service\Exception\ConstraintViolations;
+use ElevenLabs\Api\Service\Exception\RequestViolations;
+use ElevenLabs\Api\Service\Exception\ResponseViolations;
 use ElevenLabs\Api\Service\Resource\Resource;
 use ElevenLabs\Api\Validator\MessageValidator;
 use Http\Client\HttpAsyncClient;
@@ -105,9 +108,8 @@ class ApiService
         $this->client = $client;
         $this->messageFactory = $messageFactory;
         $this->serializer = $serializer;
-
-        $this->setConfig($config);
-        $this->configureBaseUri();
+        $this->config = $this->getConfig($config);
+        $this->baseUri = $this->getBaseUri();
     }
 
     /**
@@ -175,7 +177,13 @@ class ApiService
         );
     }
 
-    private function configureBaseUri()
+    /**
+     * Configure the base uri from using the API Schema if no baseUri is provided
+     * Or from the baseUri config if provided
+     *
+     * @return UriInterface
+     */
+    private function getBaseUri()
     {
         // Create a base uri from the API Schema
         if ($this->config['baseUri'] === null) {
@@ -204,17 +212,15 @@ class ApiService
             }
 
             return $this->uriFactory->createUri($scheme.'://'.$host);
-        }
-
-        if ($this->config['baseUri'] !== null ) {
-            $this->baseUri = $this->uriFactory->createUri($this->config['baseUri']);
+        } else {
+            return $this->uriFactory->createUri($this->config['baseUri']);
         }
     }
 
     /**
      * @param array $config
      */
-    private function setConfig(array $config)
+    private function getConfig(array $config)
     {
         $config = array_merge(self::DEFAULT_CONFIG, $config);
         Assertion::boolean($config['returnResponse']);
@@ -222,7 +228,7 @@ class ApiService
         Assertion::boolean($config['validateResponse']);
         Assertion::nullOrString($config['baseUri']);
 
-        $this->config = array_intersect_key($config, self::DEFAULT_CONFIG);
+        return array_intersect_key($config, self::DEFAULT_CONFIG);
     }
 
     /**
@@ -306,7 +312,7 @@ class ApiService
     {
         return $this->serializer->serialize(
             $decodedBody,
-            $this->extractFormatFromContentType($contentType)
+            DecoderUtils::extractFormatFromContentType($contentType)
         );
     }
 
@@ -332,29 +338,13 @@ class ApiService
         return $this->serializer->deserialize(
             (string) $response->getBody(),
             Resource::class,
-            $this->extractFormatFromContentType($response->getHeaderLine('Content-Type')),
+            DecoderUtils::extractFormatFromContentType($response->getHeaderLine('Content-Type')),
             [
                 'response' => $response,
                 'responseDefinition' => $definition,
                 'request' => $request,
             ]
         );
-    }
-
-    /**
-     * @param string $contentType
-     *
-     * @return string
-     */
-    private function extractFormatFromContentType($contentType)
-    {
-        $parts = explode('/', $contentType);
-        $format = array_pop($parts);
-        if (false !== $pos = strpos($format, '+')) {
-            $format = substr($format, $pos+1);
-        }
-
-        return $format;
     }
 
     /**
@@ -368,14 +358,14 @@ class ApiService
      */
     private function validateRequest(RequestInterface $request, RequestDefinition $definition)
     {
-        if ($this->config['withRequestValidation'] === false) {
+        if ($this->config['validateRequest'] === false) {
             return;
         }
 
         $this->messageValidator->validateRequest($request, $definition);
         if ($this->messageValidator->hasViolations()) {
 
-            throw new ConstraintViolations(
+            throw new RequestViolations(
                 $this->messageValidator->getViolations()
             );
         }
@@ -392,14 +382,14 @@ class ApiService
      */
     private function validateResponse(ResponseInterface $response, RequestDefinition $definition)
     {
-        if ($this->config['withResponseValidation'] === false) {
+        if ($this->config['validateResponse'] === false) {
             return;
         }
 
         $this->messageValidator->validateResponse($response, $definition);
         if ($this->messageValidator->hasViolations()) {
 
-            throw new ConstraintViolations(
+            throw new ResponseViolations(
                 $this->messageValidator->getViolations()
             );
         }

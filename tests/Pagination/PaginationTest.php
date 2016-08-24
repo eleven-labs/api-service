@@ -14,6 +14,7 @@ class PaginationTest extends TestCase
         assertThat($pagination->getPerPage(), equalTo(20));
         assertThat($pagination->getTotalItems(), equalTo(100));
         assertThat($pagination->getTotalPages(), equalTo(5));
+        assertThat($pagination->hasLinks(), isFalse());
     }
 
     /** @test */

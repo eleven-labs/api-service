@@ -31,6 +31,7 @@ class CollectionTest extends TestCase
 
         assertThat($resource->getData(), equalTo($data));
         assertThat($resource->getMeta(), equalTo($meta));
+        assertThat($resource->hasPagination(), isFalse());
     }
 
     /** @test */

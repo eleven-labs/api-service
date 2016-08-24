@@ -111,21 +111,29 @@ class ApiServiceBuilder
     public function withBaseUri($baseUri)
     {
         $this->config['baseUri'] = $baseUri;
+
+        return $this;
     }
 
     public function disableRequestValidation()
     {
         $this->config['validateRequest'] = false;
+
+        return $this;
     }
 
     public function enableResponseValidation()
     {
         $this->config['validateResponse'] = true;
+
+        return $this;
     }
 
     public function returnResponse()
     {
         $this->config['returnResponse'] = true;
+
+        return $this;
     }
 
     public function build($schemaPath)

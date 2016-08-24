@@ -68,7 +68,7 @@ class Pagination
     }
 
     /**
-     * @return null
+     * @return PaginationLinks
      */
     public function getLinks()
     {

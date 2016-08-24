@@ -30,20 +30,8 @@ class PaginationHeader implements PaginationProvider
      */
     private $paginationHeaders;
 
-    /**
-     * Add support pagination links such as first, last, next, prev in the Link header of a Request
-     *
-     * @var bool
-     */
-    private $supportLinks = false;
-
     public function __construct(array $config = [])
     {
-        if (isset($config['supportLinks'])) {
-            $this->supportLinks = (bool) $config['supportLinks'];
-            unset($config['supportLinks']);
-        }
-
         foreach (self::DEFAULT_PAGINATION_HEADERS as $name => $headerName) {
             if (isset($config[$name])) {
                 $headerName = $config[$name];
@@ -56,7 +44,7 @@ class PaginationHeader implements PaginationProvider
     public function getPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition)
     {
         $paginationLinks = null;
-        if ($this->supportLinks) {
+        if ($response->hasHeader('Link')) {
             $links = self::parseHeaderLinks($response->getHeader('Link'));
             $paginationLinks = new PaginationLinks(
                 $links['first'],
@@ -79,9 +67,6 @@ class PaginationHeader implements PaginationProvider
     public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition)
     {
         $support = true;
-        if ($this->supportLinks) {
-            $support = $support & ($response->getHeaderLine('Link') !== '');
-        }
         foreach ($this->paginationHeaders as $headerName) {
             $support = $support & ($response->getHeaderLine($headerName) !== '');
         }

@@ -15,19 +15,29 @@ consumes:
   - text/plain
   - application/octet-stream
 
+produces:
+  - application/json
+
 paths:
-  /get:
+  /get/{aPath}:
     get:
       operationId: dumpGetRequest
       summary: Dump a request into the reqponse body
       parameters:
-        -
-          name: size
+        - name: aPath
+          in: path
+          type: string
+        - name: aDate
           in: query
-          description: Size of array
-          required: true
-          type: number
-          format: double
+          type: string
+          format: date-time
+        - name: aBody
+          in: body
+          schema:
+            type: object
+        - name: anHeader
+          in: header
+          type: string
       responses:
         200:
           description: Successful response
@@ -41,6 +51,7 @@ definitions:
     required:
       - origin
       - url
+    additionalProperties: false
     properties:
       args:
         type: object
