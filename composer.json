@@ -20,17 +20,15 @@
         ]
     },
     "require": {
-        "eleven-labs/api-validator": "^0.4",
         "php-http/httplug": "^1.0",
         "php-http/message": "^1.3",
-        "psr/cache": "^1.0",
+        "eleven-labs/api-validator": "^0.4",
         "beberlei/assert": "^2.6"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.4",
         "php-http/mock-client": "^0.3.2",
         "guzzlehttp/psr7": "^1.3",
-        "mikey179/vfsStream": "^1.6",
         "symfony/serializer": "^2.7|^3.0",
         "php-http/guzzle6-adapter": "^1.1",
         "symfony/property-access": "^3.1",

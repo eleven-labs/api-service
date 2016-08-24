@@ -237,6 +237,8 @@ class ApiService
      * @param RequestDefinition $definition
      * @param array $params An array of parameters
      *
+     * @todo handle default values for request parameters
+     *
      * @return RequestInterface
      */
     private function createRequestFromDefinition(RequestDefinition $definition, array $params)
