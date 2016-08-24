@@ -2,11 +2,11 @@
 namespace ElevenLabs\Api\Service;
 
 use ElevenLabs\Api\Decoder\Adapter\SymfonyDecoderAdapter;
+use ElevenLabs\Api\Factory\CachedSchemaFactoryDecorator;
 use ElevenLabs\Api\Factory\SwaggerSchemaFactory;
 use ElevenLabs\Api\Schema;
 use ElevenLabs\Api\Service\Denormalizer\ResourceDenormalizer;
-use ElevenLabs\Api\Service\Schema\Factory\CachedSchemaFactoryDecorator;
-use ElevenLabs\Api\Validator\RequestValidator;
+use ElevenLabs\Api\Validator\MessageValidator;
 use Http\Client\HttpClient;
 use Http\Discovery\HttpClientDiscovery;
 use Http\Discovery\MessageFactoryDiscovery;
@@ -38,6 +38,7 @@ class ApiServiceBuilder
     private $schema;
     private $cache;
     private $debug = false;
+    private $config = [];
 
     public static function create()
     {
@@ -107,7 +108,27 @@ class ApiServiceBuilder
         return $this;
     }
 
-    public function build($baseUri, $schemaPath)
+    public function withBaseUri($baseUri)
+    {
+        $this->config['baseUri'] = $baseUri;
+    }
+
+    public function disableRequestValidation()
+    {
+        $this->config['validateRequest'] = false;
+    }
+
+    public function enableResponseValidation()
+    {
+        $this->config['validateResponse'] = true;
+    }
+
+    public function returnResponse()
+    {
+        $this->config['returnResponse'] = true;
+    }
+
+    public function build($schemaPath)
     {
         // Build serializer
         if ($this->serializer === null) {
@@ -150,21 +171,21 @@ class ApiServiceBuilder
         $this->schema = $schemaFactory->createSchema($schemaPath);
 
         if (!isset($this->requestValidator)) {
-            $this->requestValidator = new RequestValidator(
-                $this->schema,
+            $this->requestValidator = new MessageValidator(
                 new Validator(),
                 new SymfonyDecoderAdapter(new ChainDecoder($this->encoders))
             );
         }
 
         return new ApiService(
-            $this->uriFactory->createUri($baseUri),
+            $this->uriFactory,
             new UriTemplate(),
             $this->httpClient,
             $this->messageFactory,
             $this->schema,
             $this->requestValidator,
-            $this->serializer
+            $this->serializer,
+            $this->config
         );
     }
 }

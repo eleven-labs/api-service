@@ -35,14 +35,9 @@ class PaginationLinks
         return $this->first;
     }
 
-    public function hasLast()
-    {
-        return ($this->last !== null);
-    }
-
     public function hasNext()
     {
-        return ($this->last !== null);
+        return ($this->next !== null);
     }
 
     /**
@@ -55,7 +50,7 @@ class PaginationLinks
 
     public function hasPrev()
     {
-        return ($this->last !== null);
+        return ($this->prev !== null);
     }
 
     /**
@@ -64,5 +59,13 @@ class PaginationLinks
     public function getPrev()
     {
         return $this->prev;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLast()
+    {
+        return $this->last;
     }
 }

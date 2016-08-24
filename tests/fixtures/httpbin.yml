@@ -1,0 +1,64 @@
+swagger: '2.0'
+
+info:
+  version: "1.0.0"
+  title: httpbin partial service description
+
+schemes:
+  - https
+
+host: httpbin.org
+
+consumes:
+  - application/json
+  - application/xml
+  - text/plain
+  - application/octet-stream
+
+paths:
+  /get:
+    get:
+      operationId: dumpGetRequest
+      summary: Dump a request into the reqponse body
+      parameters:
+        -
+          name: size
+          in: query
+          description: Size of array
+          required: true
+          type: number
+          format: double
+      responses:
+        200:
+          description: Successful response
+          schema:
+            $ref: "#/definitions/RequestDump"
+
+definitions:
+  RequestDump:
+    id: RequestDump
+    type: object
+    required:
+      - origin
+      - url
+    properties:
+      args:
+        type: object
+      data:
+        type: string
+      files:
+        type: object
+      form:
+        type: object
+      json:
+        type: object
+      headers:
+        type: object
+        additionalProperties:
+          type: string
+      origin:
+        type: string
+        format: ipv4
+      url:
+        type: string
+        format: uri

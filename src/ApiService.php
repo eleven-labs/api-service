@@ -1,14 +1,17 @@
 <?php
 namespace ElevenLabs\Api\Service;
 
+use Assert\Assertion;
 use ElevenLabs\Api\Definition\RequestDefinition;
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Schema;
+use ElevenLabs\Api\Service\Exception\ConstraintViolations;
 use ElevenLabs\Api\Service\Resource\Resource;
-use ElevenLabs\Api\Validator\RequestValidator;
+use ElevenLabs\Api\Validator\MessageValidator;
 use Http\Client\HttpAsyncClient;
 use Http\Client\HttpClient;
 use Http\Message\MessageFactory;
+use Http\Message\UriFactory;
 use Http\Promise\Promise;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -21,15 +24,29 @@ use Symfony\Component\Serializer\SerializerInterface;
  */
 class ApiService
 {
+    const DEFAULT_CONFIG = [
+        // override the scheme and host provided in the API schema by a baseUri (ex:https://domain.com)
+        'baseUri' => null,
+        // validate request
+        'validateRequest' => true,
+        // validate response
+        'validateResponse' => false,
+        // return response instead of a denormalized object
+        'returnResponse' => false
+    ];
+
+    /** @var UriInterface */
+    private $baseUri;
+
     /**
      * @var Schema
      */
     private $schema;
 
     /**
-     * @var RequestValidator
+     * @var MessageValidator
      */
-    private $validator;
+    private $messageValidator;
 
     /**
      * @var HttpAsyncClient|HttpClient
@@ -47,9 +64,9 @@ class ApiService
     private $uriTemplate;
 
     /**
-     * @var UriInterface
+     * @var UriFactory
      */
-    private $baseUri;
+    private $uriFactory;
 
     /**
      * @var SerializerInterface
@@ -57,30 +74,40 @@ class ApiService
     private $serializer;
 
     /**
-     * @param UriInterface $baseUri The BaseUri of your API
+     * @var array
+     */
+    private $config;
+
+    /**
+     * @param UriFactory $uriFactory The BaseUri of your API
      * @param UriTemplate $uriTemplate Used to expand Uri pattern in the API definition
      * @param HttpClient $client An HTTP client
      * @param MessageFactory $messageFactory
      * @param Schema $schema
-     * @param RequestValidator $validator
+     * @param MessageValidator $messageValidator
      * @param SerializerInterface $serializer
+     * @param array $config
      */
     public function __construct(
-        UriInterface $baseUri,
+        UriFactory $uriFactory,
         UriTemplate $uriTemplate,
         HttpClient $client,
         MessageFactory $messageFactory,
         Schema $schema,
-        RequestValidator $validator,
-        SerializerInterface $serializer
+        MessageValidator $messageValidator,
+        SerializerInterface $serializer,
+        array $config = []
     ) {
-        $this->baseUri = $baseUri;
+        $this->uriFactory = $uriFactory;
         $this->uriTemplate = $uriTemplate;
         $this->schema = $schema;
-        $this->validator = $validator;
+        $this->messageValidator = $messageValidator;
         $this->client = $client;
         $this->messageFactory = $messageFactory;
         $this->serializer = $serializer;
+
+        $this->setConfig($config);
+        $this->configureBaseUri();
     }
 
     /**
@@ -95,7 +122,10 @@ class ApiService
     {
         $requestDefinition = $this->schema->getRequestDefinition($operationId);
         $request = $this->createRequestFromDefinition($requestDefinition, $params);
+        $this->validateRequest($request, $requestDefinition);
+
         $response =  $this->client->sendRequest($request);
+        $this->validateResponse($response, $requestDefinition);
 
         $data = $this->getDataFromResponse(
             $response,
@@ -141,6 +171,56 @@ class ApiService
                 );
             }
         );
+    }
+
+    private function configureBaseUri()
+    {
+        // Create a base uri from the API Schema
+        if ($this->config['baseUri'] === null) {
+            $scheme = null;
+            $schemes = $this->schema->getSchemes();
+            if ($schemes === null) {
+                throw new \LogicException('You need to provide at least on scheme in your API Schema');
+            }
+
+            foreach ($this->schema->getSchemes() as $candidate) {
+                // Always prefer https
+                if ($candidate === 'https') {
+                    $scheme = 'https';
+                }
+                if ($scheme === null && $candidate === 'http') {
+                    $scheme = 'http';
+                }
+            }
+            if ($scheme === null ) {
+                throw new \RuntimeException('Cannot choose a proper scheme from the API Schema. Supported: https, http');
+            }
+
+            $host = $this->schema->getHost();
+            if ($host === null) {
+                throw new \LogicException('The host in the API Schema should not be null');
+            }
+
+            return $this->uriFactory->createUri($scheme.'://'.$host);
+        }
+
+        if ($this->config['baseUri'] !== null ) {
+            $this->baseUri = $this->uriFactory->createUri($this->config['baseUri']);
+        }
+    }
+
+    /**
+     * @param array $config
+     */
+    private function setConfig(array $config)
+    {
+        $config = array_merge(self::DEFAULT_CONFIG, $config);
+        Assertion::boolean($config['returnResponse']);
+        Assertion::boolean($config['validateRequest']);
+        Assertion::boolean($config['validateResponse']);
+        Assertion::nullOrString($config['baseUri']);
+
+        $this->config = array_intersect_key($config, self::DEFAULT_CONFIG);
     }
 
     /**
@@ -191,6 +271,7 @@ class ApiService
         return $request;
     }
 
+
     /**
      * Create a complete API Uri from the Base Uri, path and query parameters.
      *
@@ -229,16 +310,19 @@ class ApiService
 
     /**
      * Transform a given response into a denormalized PHP object
-     *
-     * @todo Support other type than ElevenLabs\Api\Service\Resource
+     * If the config option "returnResponse" is set to TRUE, it return a Response instead
      *
      * @param ResponseInterface $response
      * @param ResponseDefinition $definition
      *
-     * @return object|Resource
+     * @return Resource|mixed
      */
     private function getDataFromResponse(ResponseInterface $response, ResponseDefinition $definition)
     {
+        if ($this->config['returnResponse'] === true) {
+            return $response;
+        }
+
         return $this->serializer->deserialize(
             (string) $response->getBody(),
             Resource::class,
@@ -266,4 +350,51 @@ class ApiService
         return $format;
     }
 
+    /**
+     * Validate a Request message
+     * If the config option "withRequestValidation" is set to FALSE it won't validate the Request
+     *
+     * @param RequestInterface $request
+     * @param RequestDefinition $definition
+     *
+     * @throws ConstraintViolations
+     */
+    private function validateRequest(RequestInterface $request, RequestDefinition $definition)
+    {
+        if ($this->config['withRequestValidation'] === false) {
+            return;
+        }
+
+        $this->messageValidator->validateRequest($request, $definition);
+        if ($this->messageValidator->hasViolations()) {
+
+            throw new ConstraintViolations(
+                $this->messageValidator->getViolations()
+            );
+        }
+    }
+
+    /**
+     * Validate a Response message
+     * If the config option "withResponseValidation" is set to FALSE it won't validate the Response
+     *
+     * @param ResponseInterface $response
+     * @param RequestDefinition $definition
+     *
+     * @throws ConstraintViolations
+     */
+    private function validateResponse(ResponseInterface $response, RequestDefinition $definition)
+    {
+        if ($this->config['withResponseValidation'] === false) {
+            return;
+        }
+
+        $this->messageValidator->validateResponse($response, $definition);
+        if ($this->messageValidator->hasViolations()) {
+
+            throw new ConstraintViolations(
+                $this->messageValidator->getViolations()
+            );
+        }
+    }
 }
