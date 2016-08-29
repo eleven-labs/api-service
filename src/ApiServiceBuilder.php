@@ -4,8 +4,8 @@ namespace ElevenLabs\Api\Service;
 use ElevenLabs\Api\Decoder\Adapter\SymfonyDecoderAdapter;
 use ElevenLabs\Api\Factory\CachedSchemaFactoryDecorator;
 use ElevenLabs\Api\Factory\SwaggerSchemaFactory;
-use ElevenLabs\Api\Schema;
 use ElevenLabs\Api\Service\Denormalizer\ResourceDenormalizer;
+use ElevenLabs\Api\Service\Pagination\PaginationProvider;
 use ElevenLabs\Api\Validator\MessageValidator;
 use Http\Client\HttpClient;
 use Http\Discovery\HttpClientDiscovery;
@@ -37,19 +37,12 @@ class ApiServiceBuilder
     private $encoders = [];
     private $schema;
     private $cache;
-    private $debug = false;
     private $config = [];
+    private $paginationProvider = null;
 
     public static function create()
     {
         return new static();
-    }
-
-    public function setDebug($bool)
-    {
-        $this->debug = (boolean) $bool;
-
-        return $this;
     }
 
     public function withCacheProvider(CacheItemPoolInterface $cache)
@@ -101,11 +94,9 @@ class ApiServiceBuilder
         return $this;
     }
 
-    public function withSchema(Schema $schema)
+    public function withPaginationProvider(PaginationProvider $paginationProvider)
     {
-        $this->schema = $schema;
-
-        return $this;
+        $this->paginationProvider = $paginationProvider;
     }
 
     public function withBaseUri($baseUri)
@@ -143,9 +134,11 @@ class ApiServiceBuilder
             if (empty($this->encoders)) {
                 $this->encoders = [new JsonEncoder(), new XmlEncoder()];
             }
+
             if (empty($this->denormalizers)) {
-                $this->denormalizers[] = new ResourceDenormalizer();
+                $this->denormalizers[] = new ResourceDenormalizer($this->paginationProvider);
             }
+
             $this->serializer = new Serializer(
                 $this->denormalizers,
                 $this->encoders
@@ -170,10 +163,6 @@ class ApiServiceBuilder
                 $this->cache,
                 $schemaFactory
             );
-            // Disable the cache A.S.A.P. in debug mode
-            if ($this->debug === true) {
-                $this->cache->expiresAt(new \DateTime());
-            }
         }
 
         $this->schema = $schemaFactory->createSchema($schemaPath);

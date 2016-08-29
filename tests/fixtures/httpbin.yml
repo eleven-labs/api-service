@@ -19,6 +19,15 @@ produces:
   - application/json
 
 paths:
+  /get/collection:
+    get:
+      operationId: getFakeCollection
+      responses:
+        200:
+          schema:
+            type: array
+            items:
+              type: object
   /get/{aPath}:
     get:
       operationId: dumpGetRequest

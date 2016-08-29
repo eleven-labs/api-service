@@ -4,6 +4,9 @@ namespace ElevenLabs\Api\Service\Functional;
 use ElevenLabs\Api\Service\ApiServiceBuilder;
 use ElevenLabs\Api\Service\Exception\RequestViolations;
 use ElevenLabs\Api\Service\Exception\ResponseViolations;
+use ElevenLabs\Api\Service\Pagination\Pagination;
+use ElevenLabs\Api\Service\Pagination\Provider\PaginationHeader;
+use ElevenLabs\Api\Service\Resource\Collection;
 use ElevenLabs\Api\Service\Resource\Resource;
 use GuzzleHttp\Psr7\Response;
 use Http\Mock\Client;
@@ -108,6 +111,41 @@ class ApiServiceTest extends TestCase
         );
 
         $apiService->call('dumpGetRequest');
+    }
+
+    public function itCanPaginate()
+    {
+        $apiService = ApiServiceBuilder::create()
+            ->withHttpClient($this->httpMockClient)
+            ->withBaseUri('https://domain.tld')
+            ->withPaginationProvider(new PaginationHeader())
+            ->build($this->schemaFile);
+
+        $this->httpMockClient->addResponse(
+            new Response(
+                200,
+                [
+                    'Content-Type' => 'application/json',
+                    'X-Page' => '1',
+                    'X-Per-Page' => '10',
+                    'X-Total-Pages' => '10',
+                    'X-Total-Items' => '100',
+                    'Link' => [
+                        '<http://domain.tld?page=1>; rel="first"',
+                        '<http://domain.tld?page=10>; rel="last"',
+                        '<http://domain.tld?page=4>; rel="next"',
+                        '<http://domain.tld?page=2>; rel="prev"',
+                    ]
+                ],
+                '[{"foo": "value 1"}, {"foo": "value 2"}]'
+            )
+        );
+
+        $resource = $apiService->call('getFakeCollection');
+
+        assertThat($resource, isInstanceOf(Collection::class));
+        assertThat($resource->hasPagination(), isTrue());
+        assertThat($resource->getPagination(), isInstanceOf(Pagination::class));
     }
 
 }
