@@ -162,4 +162,71 @@ class ResourceDenormalizerTest extends TestCase
         assertThat($resource, isInstanceOf(Collection::class));
         assertThat($resource->getPagination(), equalTo($pagination->reveal()));
     }
+
+    /** @test */
+    public function itCanExtractTypeFromAnAllOfSchema()
+    {
+        $jsonSchema = (object) [
+            'allOf' => [
+                (object) ['type'=> 'object'],
+                (object) ['type'=> 'object'],
+            ]
+        ];
+
+        $response = $this->prophesize(ResponseInterface::class);
+
+        $request = $this->prophesize(RequestInterface::class);
+
+        $responseDefinition = $this->prophesize(ResponseDefinition::class);
+        $responseDefinition->hasBodySchema()->willReturn(true);
+        $responseDefinition->getBodySchema()->willReturn($jsonSchema);
+
+        $paginationProvider = $this->prophesize(PaginationProvider::class);
+        $paginationProvider->supportPagination()->shouldNotBeCalled();
+
+        $denormalizer = new ResourceDenormalizer($paginationProvider->reveal());
+        $resource = $denormalizer->denormalize(
+            ['foo' => 'bar'],
+            Resource::class,
+            null,
+            [
+                'response' => $response->reveal(),
+                'responseDefinition' => $responseDefinition->reveal(),
+                'request' => $request->reveal()
+            ]
+        );
+
+        assertThat($resource, isInstanceOf(Item::class));
+    }
+
+    /** @test */
+    public function itThrowAnExceptionWhenSchemaTypeCannotBeExtracted()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Cannot extract type from schema');
+
+        $jsonSchema = (object) ['invalid' => 'invalid'];
+
+        $response = $this->prophesize(ResponseInterface::class);
+        $request = $this->prophesize(RequestInterface::class);
+
+        $responseDefinition = $this->prophesize(ResponseDefinition::class);
+        $responseDefinition->hasBodySchema()->willReturn(true);
+        $responseDefinition->getBodySchema()->willReturn($jsonSchema);
+
+        $paginationProvider = $this->prophesize(PaginationProvider::class);
+        $paginationProvider->supportPagination()->shouldNotBeCalled();
+
+        $denormalizer = new ResourceDenormalizer($paginationProvider->reveal());
+        $resource = $denormalizer->denormalize(
+            ['foo' => 'bar'],
+            Resource::class,
+            null,
+            [
+                'response' => $response->reveal(),
+                'responseDefinition' => $responseDefinition->reveal(),
+                'request' => $request->reveal()
+            ]
+        );
+    }
 }
