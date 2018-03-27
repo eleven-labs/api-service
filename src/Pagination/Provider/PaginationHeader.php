@@ -41,7 +41,7 @@ class PaginationHeader implements PaginationProvider
     }
 
     /** {@inheritdoc} */
-    public function getPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition)
+    public function getPagination(array &$data, ResponseInterface $response, ResponseDefinition $responseDefinition)
     {
         $paginationLinks = null;
         if ($response->hasHeader('Link')) {
