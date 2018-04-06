@@ -63,7 +63,7 @@ class HateoasPagination implements PaginationProvider
         }
         $count = (int) $data[$this->paginationHeaders['totalPages']];
         $total = (int) $data[$this->paginationHeaders['totalItems']];
-        $perPage = (int) ceil($count/$total);
+        $perPage = $total === 0 ? 0 : (int) ceil($count/$total);
         $currentPage = $this->getCurrentPage($data['_links']['self']['href']);
         $data = reset($data['_embedded']);
 
@@ -81,16 +81,12 @@ class HateoasPagination implements PaginationProvider
      */
     public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition)
     {
-        if (!empty($data['_links']) && !empty($data['count']) && !empty($data['total']) && !empty($data['_embedded'])) {
-            $links = ['self', 'first', 'last', 'next', 'prev'];
-            foreach (array_keys($data['_links']) as $link) {
-                if (!in_array($link, $links)) {
-                    return false;
-                } else if (empty($data['_links'][$link]['href'])) {
-                    return false;
-                }
+        if (isset($data['_links']) && isset($data['count']) && isset($data['total']) && isset($data['_embedded'])) {
+            $links = $data['_links'];
+            if (isset($links['self']) && isset($links['first']) && isset($links['last'])) {
+                return true;
             }
-            return true;
+            return false;
         }
 
         return false;
