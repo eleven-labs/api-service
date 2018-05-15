@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Prophecy\Prophecy\ObjectProphecy;
 
 class ResourceDenormalizerTest extends TestCase
 {

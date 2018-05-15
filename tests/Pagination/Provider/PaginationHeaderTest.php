@@ -34,10 +34,12 @@ class PaginationHeaderTest extends TestCase
         $response->getHeaderLine('X-Total-Items')->willReturn('100');
         $response->getHeaderLine('X-Total-Pages')->willReturn('10');
 
+        $data = [];
+
         $definition = $this->prophesize(ResponseDefinition::class);
 
         $provider = new PaginationHeader();
-        $pagination = $provider->getPagination([], $response->reveal(), $definition->reveal());
+        $pagination = $provider->getPagination($data, $response->reveal(), $definition->reveal());
 
         assertThat($pagination, isInstanceOf(Pagination::class));
         assertThat($pagination->getPage(), self::equalTo(1));
@@ -56,6 +58,8 @@ class PaginationHeaderTest extends TestCase
             'totalPages' => 'X-Pagination-Total-Pages',
         ];
 
+        $data = [];
+
         $response = $this->prophesize(ResponseInterface::class);
         $response->hasHeader('Link')->willReturn(false);
         $response->getHeaderLine('X-Pagination-Page')->willReturn('1');
@@ -66,7 +70,7 @@ class PaginationHeaderTest extends TestCase
         $definition = $this->prophesize(ResponseDefinition::class);
 
         $provider = new PaginationHeader($config);
-        $pagination = $provider->getPagination([], $response->reveal(), $definition->reveal());
+        $pagination = $provider->getPagination($data, $response->reveal(), $definition->reveal());
 
         assertThat($pagination, isInstanceOf(Pagination::class));
         assertThat($pagination->getPage(), self::equalTo(1));
@@ -93,10 +97,12 @@ class PaginationHeaderTest extends TestCase
         $response->hasHeader('Link')->willReturn(true);
         $response->getHeader('Link')->willReturn($linkHeader);
 
+        $data = [];
+
         $definition = $this->prophesize(ResponseDefinition::class);
 
         $provider = new PaginationHeader();
-        $pagination = $provider->getPagination([], $response->reveal(), $definition->reveal());
+        $pagination = $provider->getPagination($data, $response->reveal(), $definition->reveal());
 
         $paginationLinks = $pagination->getLinks();
 

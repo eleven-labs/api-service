@@ -6,7 +6,6 @@ use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use ElevenLabs\Api\Service\Pagination\PaginationLinks;
 use ElevenLabs\Api\Service\Pagination\PaginationProvider;
-use function GuzzleHttp\Psr7\parse_query;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -27,9 +26,9 @@ class HateoasPagination implements PaginationProvider
         // number of items per page
         'perPage' => 'perPage',
         // number of items available in total
-        'totalItems' => 'totalPages',
+        'totalItems' => 'totalItems',
         // number of pages available
-        'totalPages' => 'total'
+        'totalPages' => 'totalPages'
     ];
 
     /**
