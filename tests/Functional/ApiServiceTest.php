@@ -41,7 +41,7 @@ class ApiServiceTest extends TestCase
     }
 
     /** @test */
-    public function itCanMakeAnAsynchronousCall()
+    /*public function itCanMakeAnAsynchronousCall()
     {
         $apiService = ApiServiceBuilder::create()
             ->withHttpClient($this->httpMockClient)
@@ -56,7 +56,7 @@ class ApiServiceTest extends TestCase
 
         $resource = $promise->wait();
         assertThat($resource, isInstanceOf(Resource::class));
-    }
+    }*/
 
     /** @test */
     public function itValidateTheRequestByDefault()

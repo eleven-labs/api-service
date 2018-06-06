@@ -14,7 +14,7 @@ interface PaginationProvider
      *
      * @return Pagination
      */
-    public function getPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition);
+    public function getPagination(array &$data, ResponseInterface $response, ResponseDefinition $responseDefinition);
 
     /**
      * Indicate if the pagination is supported

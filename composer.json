@@ -6,6 +6,13 @@
             "email": "gcanal@eleven-labs.com"
         }
     ],
+    "repositories":
+    [
+        {
+            "type": "vcs",
+            "url":  "https://github.com/ThibautAlgrin/api-validator"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "ElevenLabs\\Api\\Service\\": "src/"
@@ -29,7 +36,7 @@
         "phpunit/phpunit": "^5.4",
         "php-http/mock-client": "^0.3.2",
         "guzzlehttp/psr7": "^1.3",
-        "symfony/serializer": "^2.7|^3.0",
+        "symfony/serializer": "^2.7|^3.0|^4.0",
         "php-http/guzzle6-adapter": "^1.1",
         "symfony/property-access": "^3.1",
         "tedivm/stash": "^0.14.1"

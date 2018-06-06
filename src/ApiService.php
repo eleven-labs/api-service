@@ -264,7 +264,7 @@ class ApiService
                     $query[$name] = $value;
                     break;
                 case 'header':
-                    $query[$name] = $value;
+                    $headers[$name] = $value;
                     break;
                 case 'body':
                     $body = $this->serializeRequestBody($value, $contentType);
