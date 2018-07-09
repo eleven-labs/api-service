@@ -45,7 +45,7 @@ class ResourceDenormalizer implements DenormalizerInterface
         $schema = $definition->getBodySchema();
         $meta = ['headers' => $response->getHeaders()];
 
-        if ($schema->type === 'array') {
+        if ($this->getSchemaType($schema) === 'array') {
             $pagination = null;
             if ($this->paginationProvider !== null &&
                 $this->paginationProvider->supportPagination($data, $response, $definition)
@@ -63,5 +63,25 @@ class ResourceDenormalizer implements DenormalizerInterface
     public function supportsDenormalization($data, $type, $format = null)
     {
         return ($type === Resource::class);
+    }
+
+    /**
+     * Extract the type for a given JSON Schema
+     *
+     * @param \stdClass $schema
+     * @throws \RuntimeException
+     *
+     * @return string
+     */
+    private function getSchemaType(\stdClass $schema)
+    {
+        if (isset($schema->type) === true) {
+            return $schema->type;
+        }
+        if (isset($schema->allOf[0]->type) === true) {
+            return $schema->allOf[0]->type;
+        }
+
+        throw new \RuntimeException('Cannot extract type from schema');
     }
 }
