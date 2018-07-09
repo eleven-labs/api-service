@@ -1,4 +1,5 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Functional;
 
 use ElevenLabs\Api\Service\ApiServiceBuilder;
@@ -13,6 +14,9 @@ use Http\Mock\Client;
 use Http\Promise\Promise;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class ApiServiceTest
+ */
 class ApiServiceTest extends TestCase
 {
     /** @var string */
@@ -83,12 +87,12 @@ class ApiServiceTest extends TestCase
         $apiService->call('dumpGetRequest', [
             'aPath' => 1,
             'aDate' => 'notADateString',
-            'aBody' => ['foo' => 'bar']
+            'aBody' => ['foo' => 'bar'],
         ]);
 
         $request = current($this->httpMockClient->getRequests());
 
-        assertThat($request->getUri()->__toString(), equalTo('https://domain.tld/get/1?aDate=notADateString'));
+        assertThat($request->getUri()->__toString(), $this->equalTo('https://domain.tld/get/1?aSlug=test&aDate=notADateString'));
     }
 
     /** @test */

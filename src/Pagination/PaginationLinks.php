@@ -1,23 +1,31 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Pagination;
 
+/**
+ * Class PaginationLinks
+ */
 class PaginationLinks
 {
     /** @var string */
     private $first;
+
     /** @var string */
     private $last;
+
     /** @var string */
     private $next;
+
     /** @var string */
     private $prev;
 
     /**
      * PaginationLinks constructor.
-     * @param string $first
-     * @param string $last
-     * @param string $next
-     * @param string $prev
+     *
+     * @param string      $first
+     * @param string      $last
+     * @param string|null $next
+     * @param string|null $prev
      */
     public function __construct($first, $last, $next = null, $prev = null)
     {
@@ -35,6 +43,9 @@ class PaginationLinks
         return $this->first;
     }
 
+    /**
+     * @return bool
+     */
     public function hasNext()
     {
         return ($this->next !== null);
@@ -48,6 +59,9 @@ class PaginationLinks
         return $this->next;
     }
 
+    /**
+     * @return bool
+     */
     public function hasPrev()
     {
         return ($this->prev !== null);

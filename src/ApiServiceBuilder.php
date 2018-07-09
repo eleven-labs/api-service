@@ -1,4 +1,5 @@
 <?php
+
 namespace ElevenLabs\Api\Service;
 
 use ElevenLabs\Api\Decoder\Adapter\SymfonyDecoderAdapter;
@@ -40,11 +41,19 @@ class ApiServiceBuilder
     private $config = [];
     private $paginationProvider = null;
 
+    /**
+     * @return ApiServiceBuilder
+     */
     public static function create()
     {
         return new static();
     }
 
+    /**
+     * @param CacheItemPoolInterface $cache
+     *
+     * @return $this
+     */
     public function withCacheProvider(CacheItemPoolInterface $cache)
     {
         $this->cache = $cache;
@@ -52,6 +61,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param HttpClient $httpClient
+     *
+     * @return $this
+     */
     public function withHttpClient(HttpClient $httpClient)
     {
         $this->httpClient = $httpClient;
@@ -59,6 +73,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param MessageFactory $messageFactory
+     *
+     * @return $this
+     */
     public function withMessageFactory(MessageFactory $messageFactory)
     {
         $this->messageFactory = $messageFactory;
@@ -66,6 +85,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param UriFactory $uriFactory
+     *
+     * @return $this
+     */
     public function withUriFactory(UriFactory $uriFactory)
     {
         $this->uriFactory = $uriFactory;
@@ -73,6 +97,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param SerializerInterface $serializer
+     *
+     * @return $this
+     */
     public function withSerializer(SerializerInterface $serializer)
     {
         $this->serializer = $serializer;
@@ -80,6 +109,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param EncoderInterface $encoder
+     *
+     * @return $this
+     */
     public function withEncoder(EncoderInterface $encoder)
     {
         $this->encoders[] = $encoder;
@@ -87,6 +121,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param NormalizerInterface $normalizer
+     *
+     * @return $this
+     */
     public function withDenormalizer(NormalizerInterface $normalizer)
     {
         $this->denormalizers[] = $normalizer;
@@ -94,11 +133,19 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param PaginationProvider $paginationProvider
+     */
     public function withPaginationProvider(PaginationProvider $paginationProvider)
     {
         $this->paginationProvider = $paginationProvider;
     }
 
+    /**
+     * @param string $baseUri
+     *
+     * @return $this
+     */
     public function withBaseUri($baseUri)
     {
         $this->config['baseUri'] = $baseUri;
@@ -106,6 +153,9 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function disableRequestValidation()
     {
         $this->config['validateRequest'] = false;
@@ -113,6 +163,9 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function enableResponseValidation()
     {
         $this->config['validateResponse'] = true;
@@ -120,6 +173,9 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function returnResponse()
     {
         $this->config['returnResponse'] = true;
@@ -127,6 +183,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param string $schemaPath
+     *
+     * @return ApiService
+     */
     public function build($schemaPath)
     {
         // Build serializer
@@ -153,7 +214,7 @@ class ApiServiceBuilder
             $this->messageFactory = MessageFactoryDiscovery::find();
         }
 
-        if($this->httpClient === null) {
+        if ($this->httpClient === null) {
             $this->httpClient = HttpClientDiscovery::find();
         }
 

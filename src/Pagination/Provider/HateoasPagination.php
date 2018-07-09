@@ -10,8 +10,6 @@ use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class HateoasPagination
- *
- * @package App\Service\Pagination
  */
 class HateoasPagination implements PaginationProvider
 {
@@ -28,7 +26,7 @@ class HateoasPagination implements PaginationProvider
         // number of items available in total
         'totalItems' => 'totalItems',
         // number of pages available
-        'totalPages' => 'totalPages'
+        'totalPages' => 'totalPages',
     ];
 
     /**
@@ -36,6 +34,11 @@ class HateoasPagination implements PaginationProvider
      */
     private $paginationHeaders;
 
+    /**
+     * HateoasPagination constructor.
+     *
+     * @param array $config
+     */
     public function __construct(array $config = [])
     {
         foreach (self::DEFAULT_PAGINATION_VALUE as $name => $headerName) {
@@ -47,7 +50,7 @@ class HateoasPagination implements PaginationProvider
     }
 
     /**
-     * @param array              $data The decoded response body
+     * @param array              $data               The decoded response body
      * @param ResponseInterface  $response
      * @param ResponseDefinition $responseDefinition
      *
@@ -72,8 +75,8 @@ class HateoasPagination implements PaginationProvider
     /**
      * Indicate if the pagination is supported
      *
-     * @param array $data The decoded response body
-     * @param ResponseInterface $response
+     * @param array              $data               The decoded response body
+     * @param ResponseInterface  $response
      * @param ResponseDefinition $responseDefinition
      *
      * @return bool
@@ -91,18 +94,24 @@ class HateoasPagination implements PaginationProvider
             if (isset($links['self']) && isset($links['first']) && isset($links['last'])) {
                 return true;
             }
+
             return false;
         }
 
         return false;
     }
 
+    /**
+     * @param array $headerLinks
+     *
+     * @return array
+     */
     private static function parseLinks(array $headerLinks)
     {
         $links = ['next' => null, 'prev' => null, 'first' => null, 'last' => null];
 
         foreach ($headerLinks as $name => $headerLink) {
-            if ($name === "self") {
+            if ("self" === $name) {
                 continue;
             }
             $links[$name] = $headerLink['href'];

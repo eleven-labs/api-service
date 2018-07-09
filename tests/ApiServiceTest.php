@@ -1,15 +1,22 @@
 <?php
+
 namespace ElevenLabs\Api\Service;
 
+use ElevenLabs\Api\Definition\Parameters;
+use ElevenLabs\Api\Definition\RequestDefinition;
 use ElevenLabs\Api\Schema;
 use ElevenLabs\Api\Validator\MessageValidator;
 use Http\Client\HttpClient;
 use Http\Message\MessageFactory;
 use Http\Message\UriFactory;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\UriInterface;
 use Rize\UriTemplate;
 use Symfony\Component\Serializer\SerializerInterface;
 
+/**
+ * Class ApiServiceTest
+ */
 class ApiServiceTest extends TestCase
 {
     /** @var Schema */
@@ -49,6 +56,7 @@ class ApiServiceTest extends TestCase
 
         $this->getApiService();
     }
+
     /** @test */
     public function itCheckTheHostInApiSchema()
     {
@@ -93,9 +101,36 @@ class ApiServiceTest extends TestCase
         $this->getApiService();
     }
 
+    /**
+     * @test
+     *
+     * @throws Exception\ConstraintViolations
+     * @throws \Assert\AssertionFailedException
+     * @throws \Http\Client\Exception
+     */
     public function itCanMakeASynchronousCall()
     {
-        // @todo make unit test for itCanMakeASynchronousCall()
+        $parameters = $this->prophesize(Parameters::class);
+        $parameters->getIterator()->willReturn([]);
+
+        $requestDefinition = $this->prophesize(RequestDefinition::class);
+        $requestDefinition->getContentTypes()->willReturn([['application/json']]);
+        $requestDefinition->getMethod()->willReturn('GET');
+        $requestDefinition->getPathTemplate()->willReturn('');
+        $requestDefinition->getRequestParameters()->willReturn($parameters);
+
+        $this->config['baseUri'] = 'https://somewhere.tld';
+
+        $uri = $this->prophesize(UriInterface::class);
+        $uri->withQuery("")->willReturn($uri);
+        $this->uriFactory->createUri('https://somewhere.tld')->willReturn($uri)->shouldBeCalled();
+
+        $this->schema->getSchemes()->willReturn(['http', 'https']);
+        $this->schema->getRequestDefinition('operationId')->willReturn($requestDefinition);
+        $this->schema->getHost()->willReturn('domain.tld');
+
+        $service = $this->getApiService();
+        $service->call('operationId', []);
     }
 
     public function itCanMakeAnAsynchronousCall()
@@ -103,6 +138,11 @@ class ApiServiceTest extends TestCase
         // @todo make unit test for itCanMakeAnAsynchronousCall()
     }
 
+    /**
+     * @return ApiService
+     *
+     * @throws \Assert\AssertionFailedException
+     */
     private function getApiService()
     {
         return new ApiService(

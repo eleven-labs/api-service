@@ -1,8 +1,12 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Exception;
 
 use ElevenLabs\Api\Validator\ConstraintViolation;
 
+/**
+ * Class ConstraintViolations
+ */
 class ConstraintViolations extends ApiServiceError
 {
     private $violations;
@@ -16,6 +20,9 @@ class ConstraintViolations extends ApiServiceError
         $this->message = $this->__toString();
     }
 
+    /**
+     * @return array|ConstraintViolation[]
+     */
     public function getViolations()
     {
         return $this->violations;
