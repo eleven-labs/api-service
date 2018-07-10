@@ -5,11 +5,14 @@ use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * Interface PaginationProvider
+ */
 interface PaginationProvider
 {
     /**
-     * @param array $data The decoded response body
-     * @param ResponseInterface $response
+     * @param array              $data               The decoded response body
+     * @param ResponseInterface  $response
      * @param ResponseDefinition $responseDefinition
      *
      * @return Pagination
@@ -19,8 +22,8 @@ interface PaginationProvider
     /**
      * Indicate if the pagination is supported
      *
-     * @param array $data The decoded response body
-     * @param ResponseInterface $response
+     * @param array              $data               The decoded response body
+     * @param ResponseInterface  $response
      * @param ResponseDefinition $responseDefinition
      *
      * @return bool

@@ -1,4 +1,5 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Functional;
 
 use ElevenLabs\Api\Service\ApiServiceBuilder;
@@ -7,12 +8,18 @@ use ElevenLabs\Api\Service\Exception\ResponseViolations;
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use ElevenLabs\Api\Service\Pagination\Provider\PaginationHeader;
 use ElevenLabs\Api\Service\Resource\Collection;
+use ElevenLabs\Api\Service\Resource\Item;
 use ElevenLabs\Api\Service\Resource\Resource;
 use GuzzleHttp\Psr7\Response;
 use Http\Mock\Client;
 use Http\Promise\Promise;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class ApiServiceTest
+ *
+ * @group functional
+ */
 class ApiServiceTest extends TestCase
 {
     /** @var string */
@@ -37,10 +44,13 @@ class ApiServiceTest extends TestCase
             new Response(200, ['Content-Type' => 'application/json'], '{}')
         );
 
-        $apiService->call('dumpGetRequest');
+        $data = $apiService->call('dumpGetRequest');
+        $this->assertInstanceOf(Item::class, $data);
+        $this->assertEquals([], $data->getData());
+        $this->assertEquals(['headers' => ['Content-Type' => ['application/json']]], $data->getMeta());
     }
 
-    /** @test */
+    ///** @test */
     /*public function itCanMakeAnAsynchronousCall()
     {
         $apiService = ApiServiceBuilder::create()
@@ -52,10 +62,10 @@ class ApiServiceTest extends TestCase
         );
 
         $promise = $apiService->callAsync('dumpGetRequest');
-        assertThat($promise, isInstanceOf(Promise::class));
+        $this->assertInstanceOf(Promise::class, $promise);
 
         $resource = $promise->wait();
-        assertThat($resource, isInstanceOf(Resource::class));
+        $this->assertInstanceOf(Resource::class, $resource);
     }*/
 
     /** @test */
@@ -83,12 +93,12 @@ class ApiServiceTest extends TestCase
         $apiService->call('dumpGetRequest', [
             'aPath' => 1,
             'aDate' => 'notADateString',
-            'aBody' => ['foo' => 'bar']
+            'aBody' => ['foo' => 'bar'],
         ]);
 
         $request = current($this->httpMockClient->getRequests());
 
-        assertThat($request->getUri()->__toString(), equalTo('https://domain.tld/get/1?aDate=notADateString'));
+        $this->assertEquals('https://domain.tld/get/1?aSlug=test&aDate=notADateString', $request->getUri()->__toString());
     }
 
     /** @test */
@@ -113,6 +123,7 @@ class ApiServiceTest extends TestCase
         $apiService->call('dumpGetRequest');
     }
 
+    /** @test */
     public function itCanPaginate()
     {
         $apiService = ApiServiceBuilder::create()
@@ -135,7 +146,7 @@ class ApiServiceTest extends TestCase
                         '<http://domain.tld?page=10>; rel="last"',
                         '<http://domain.tld?page=4>; rel="next"',
                         '<http://domain.tld?page=2>; rel="prev"',
-                    ]
+                    ],
                 ],
                 '[{"foo": "value 1"}, {"foo": "value 2"}]'
             )
@@ -143,9 +154,9 @@ class ApiServiceTest extends TestCase
 
         $resource = $apiService->call('getFakeCollection');
 
-        assertThat($resource, isInstanceOf(Collection::class));
-        assertThat($resource->hasPagination(), isTrue());
-        assertThat($resource->getPagination(), isInstanceOf(Pagination::class));
+        $this->assertInstanceOf(Collection::class, $resource);
+        $this->assertTrue($resource->hasPagination());
+        $this->assertInstanceOf(Pagination::class, $resource->getPagination());
     }
 
 }

@@ -1,6 +1,10 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Resource;
 
+/**
+ * Interface Resource
+ */
 interface Resource
 {
     /**

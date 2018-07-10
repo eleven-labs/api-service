@@ -1,4 +1,5 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Pagination\Provider;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
@@ -7,6 +8,9 @@ use ElevenLabs\Api\Service\Pagination\PaginationLinks;
 use ElevenLabs\Api\Service\Pagination\PaginationProvider;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * Class PaginationHeader
+ */
 class PaginationHeader implements PaginationProvider
 {
     /**
@@ -22,7 +26,7 @@ class PaginationHeader implements PaginationProvider
         // number of items available in total
         'totalItems' => 'X-Total-Items',
         // number of pages available
-        'totalPages' => 'X-Total-Pages'
+        'totalPages' => 'X-Total-Pages',
     ];
 
     /**
@@ -30,6 +34,11 @@ class PaginationHeader implements PaginationProvider
      */
     private $paginationHeaders;
 
+    /**
+     * PaginationHeader constructor.
+     *
+     * @param array $config
+     */
     public function __construct(array $config = [])
     {
         foreach (self::DEFAULT_PAGINATION_HEADERS as $name => $headerName) {
@@ -74,6 +83,11 @@ class PaginationHeader implements PaginationProvider
         return (bool) $support;
     }
 
+    /**
+     * @param array $headerLinks
+     *
+     * @return array
+     */
     private static function parseHeaderLinks(array $headerLinks)
     {
         $links = ['next' => null, 'prev' => null];
@@ -89,5 +103,4 @@ class PaginationHeader implements PaginationProvider
 
         return $links;
     }
-
 }

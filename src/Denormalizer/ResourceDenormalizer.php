@@ -1,4 +1,5 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Denormalizer;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
@@ -10,10 +11,21 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 
+/**
+ * Class ResourceDenormalizer
+ */
 class ResourceDenormalizer implements DenormalizerInterface
 {
+    /**
+     * @var PaginationProvider|null
+     */
     private $paginationProvider;
 
+    /**
+     * ResourceDenormalizer constructor.
+     *
+     * @param PaginationProvider|null $paginationProvider
+     */
     public function __construct(PaginationProvider $paginationProvider = null)
     {
         $this->paginationProvider = $paginationProvider;
@@ -69,6 +81,7 @@ class ResourceDenormalizer implements DenormalizerInterface
      * Extract the type for a given JSON Schema
      *
      * @param \stdClass $schema
+     *
      * @throws \RuntimeException
      *
      * @return string

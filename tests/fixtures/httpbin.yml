@@ -36,10 +36,15 @@ paths:
         - name: aPath
           in: path
           type: string
+          default: test
         - name: aDate
           in: query
           type: string
           format: date-time
+        - name: aSlug
+          in: query
+          type: string
+          default: test
         - name: aBody
           in: body
           schema:
@@ -47,6 +52,7 @@ paths:
         - name: anHeader
           in: header
           type: string
+          default: Test
       responses:
         200:
           description: Successful response
