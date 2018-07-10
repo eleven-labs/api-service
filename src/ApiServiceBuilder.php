@@ -135,10 +135,14 @@ class ApiServiceBuilder
 
     /**
      * @param PaginationProvider $paginationProvider
+     *
+     * @return $this
      */
     public function withPaginationProvider(PaginationProvider $paginationProvider)
     {
         $this->paginationProvider = $paginationProvider;
+
+        return $this;
     }
 
     /**

@@ -2,10 +2,15 @@
 namespace ElevenLabs\Api\Service;
 
 use ElevenLabs\Api\Schema;
+use Http\Client\HttpClient;
+use Http\Message\MessageFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
+/**
+ * Class ApiServiceBuilderTest
+ */
 class ApiServiceBuilderTest extends TestCase
 {
     /** @test */
