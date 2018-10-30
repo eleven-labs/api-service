@@ -6,13 +6,6 @@
             "email": "gcanal@eleven-labs.com"
         }
     ],
-    "repositories":
-    [
-        {
-            "type": "vcs",
-            "url":  "https://github.com/ThibautAlgrin/api-validator"
-        }
-    ],
     "autoload": {
         "psr-4": {
             "ElevenLabs\\Api\\Service\\": "src/"
