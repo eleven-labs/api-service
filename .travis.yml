@@ -1,0 +1,18 @@
+dist: trusty
+sudo: false
+language: php
+php: 7.2
+
+addons:
+  sonarcloud:
+    organization: "eleven-labs"
+
+jobs:
+  include:
+  - stage: 'unit tests'
+    install:
+    - composer install
+    script:
+    - composer test-ci
+    after_success:
+    - sonar-scanner

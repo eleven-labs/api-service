@@ -6,13 +6,6 @@
             "email": "gcanal@eleven-labs.com"
         }
     ],
-    "repositories":
-    [
-        {
-            "type": "vcs",
-            "url":  "https://github.com/ThibautAlgrin/api-validator"
-        }
-    ],
     "autoload": {
         "psr-4": {
             "ElevenLabs\\Api\\Service\\": "src/"
@@ -46,6 +39,7 @@
         "symfony/cache": "PSR-6 Cache implementation to store an API Schema in cache"
     },
     "scripts": {
-        "test": "vendor/bin/phpunit"
+        "test": "vendor/bin/phpunit --testdox --coverage-text",
+        "test-ci": "vendor/bin/phpunit --testdox --log-junit build/phpunit.xml --coverage-clover build/phpunit.coverage.xml --coverage-text"
     }
 }
