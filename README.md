@@ -1,5 +1,9 @@
 # API Service
 
+[![Build Status](https://travis-ci.org/eleven-labs/api-service.svg?branch=master)](https://travis-ci.org/eleven-labs/api-service)
+[![quality](https://sonarcloud.io/api/project_badges/measure?project=eleven-labs-api-service&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=eleven-labs-api-service)
+[![smells](https://sonarcloud.io/api/project_badges/measure?project=eleven-labs-api-service&metric=code_smells)](https://sonarcloud.io/project/issues?id=eleven-labs-api-service&resolved=false&types=CODE_SMELL)
+
 This component read API service descriptions written 
 in [OpenAPi/Swagger 2.0](https://github.com/OAI/OpenAPI-Specification) 
 in order serialize requests, and parse responses into easy to use model structures.
