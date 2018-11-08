@@ -147,5 +147,4 @@ class ApiServiceTest extends TestCase
         assertThat($resource->hasPagination(), isTrue());
         assertThat($resource->getPagination(), isInstanceOf(Pagination::class));
     }
-
 }

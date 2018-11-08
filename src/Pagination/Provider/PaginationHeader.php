@@ -89,5 +89,4 @@ class PaginationHeader implements PaginationProvider
 
         return $links;
     }
-
 }

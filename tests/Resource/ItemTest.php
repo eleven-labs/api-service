@@ -23,5 +23,4 @@ class ItemTest extends TestCase
         assertThat($resource->getData(), equalTo($data));
         assertThat($resource->getMeta(), equalTo($meta));
     }
-
 }
