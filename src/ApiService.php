@@ -202,7 +202,7 @@ class ApiService
                     $scheme = 'http';
                 }
             }
-            if ($scheme === null ) {
+            if ($scheme === null) {
                 throw new \RuntimeException('Cannot choose a proper scheme from the API Schema. Supported: https, http');
             }
 
@@ -366,7 +366,6 @@ class ApiService
 
         $this->messageValidator->validateRequest($request, $definition);
         if ($this->messageValidator->hasViolations()) {
-
             throw new RequestViolations(
                 $this->messageValidator->getViolations()
             );
@@ -390,7 +389,6 @@ class ApiService
 
         $this->messageValidator->validateResponse($response, $definition);
         if ($this->messageValidator->hasViolations()) {
-
             throw new ResponseViolations(
                 $this->messageValidator->getViolations()
             );

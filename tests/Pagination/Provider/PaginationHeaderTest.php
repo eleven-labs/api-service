@@ -112,5 +112,4 @@ class PaginationHeaderTest extends TestCase
         assertThat($paginationLinks->getNext(), equalTo('http://domain.tld?page=4'));
         assertThat($paginationLinks->getPrev(), equalTo('http://domain.tld?page=2'));
     }
-
 }

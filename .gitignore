@@ -1,5 +1,5 @@
 .idea
 /vendor/
-/examples/*/vendor/
 /composer.lock
 /build
+/phpstan.phar

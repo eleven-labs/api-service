@@ -8,7 +8,6 @@
 
 namespace ElevenLabs\Api\Service\Resource;
 
-
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use PHPUnit\Framework\TestCase;
 

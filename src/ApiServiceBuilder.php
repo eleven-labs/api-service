@@ -39,6 +39,7 @@ class ApiServiceBuilder
     private $cache;
     private $config = [];
     private $paginationProvider = null;
+    private $requestValidator;
 
     public static function create()
     {
@@ -153,7 +154,7 @@ class ApiServiceBuilder
             $this->messageFactory = MessageFactoryDiscovery::find();
         }
 
-        if($this->httpClient === null) {
+        if ($this->httpClient === null) {
             $this->httpClient = HttpClientDiscovery::find();
         }
 
