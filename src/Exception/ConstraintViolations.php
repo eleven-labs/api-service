@@ -13,7 +13,7 @@ class ConstraintViolations extends ApiServiceError
     public function __construct(array $violations)
     {
         $this->violations = $violations;
-        $this->message = $this->__toString();
+        parent::__construct((string) $this);
     }
 
     public function getViolations()

@@ -39,6 +39,7 @@ class ApiServiceBuilder
     private $cache;
     private $config = [];
     private $paginationProvider = null;
+    private $requestValidator;
 
     public static function create()
     {
