@@ -7,8 +7,9 @@ use ElevenLabs\Api\Service\Exception\ResponseViolations;
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use ElevenLabs\Api\Service\Pagination\Provider\PaginationHeader;
 use ElevenLabs\Api\Service\Resource\Collection;
-use ElevenLabs\Api\Service\Resource\Resource;
+use ElevenLabs\Api\Service\Resource\Item;
 use GuzzleHttp\Psr7\Response;
+use Http\Discovery\MessageFactoryDiscovery;
 use Http\Mock\Client;
 use Http\Promise\Promise;
 use PHPUnit\Framework\TestCase;
@@ -23,40 +24,63 @@ class ApiServiceTest extends TestCase
     public function setUp()
     {
         $this->schemaFile = 'file://'.__DIR__.'/../fixtures/httpbin.yml';
-        $this->httpMockClient = new Client();
+        $this->httpMockClient = new MockClient();
     }
 
     /** @test */
     public function itCanMakeASynchronousCall()
     {
-        $apiService = ApiServiceBuilder::create()
+        $apiService = (new ApiServiceBuilder())
             ->withHttpClient($this->httpMockClient)
+            ->withMessageFactory($messageFactory = MessageFactoryDiscovery::find())
             ->build($this->schemaFile);
 
         $this->httpMockClient->addResponse(
-            new Response(200, ['Content-Type' => 'application/json'], '{}')
+            $messageFactory->createResponse(
+                $statusCode   = 200,
+                $reasonPhrase = '',
+                $headers      = ['Content-Type' => 'application/json'],
+                $body         = json_encode(
+                    [
+                        'origin' => '127.0.0.1',
+                        'url'    => 'https://httpbin.org/get'
+                    ]
+                )
+            )
         );
 
-        $apiService->call('dumpGetRequest');
+        $response = $apiService->call('dumpGetRequest');
+
+        assertThat($response, isInstanceOf(Item::class));
     }
 
     /** @test */
-    /*public function itCanMakeAnAsynchronousCall()
+    public function itCanMakeAnAsynchronousCall()
     {
-        $apiService = ApiServiceBuilder::create()
+        $apiService = (new ApiServiceBuilder())
             ->withHttpClient($this->httpMockClient)
+            ->withMessageFactory($messageFactory = MessageFactoryDiscovery::find())
             ->build($this->schemaFile);
 
         $this->httpMockClient->addResponse(
-            new Response(200, ['Content-Type' => 'application/json'], '{}')
+            $messageFactory->createResponse(
+                $statusCode   = 200,
+                $reasonPhrase = '',
+                $headers      = ['Content-Type' => 'application/json'],
+                $body         = json_encode(
+                    [
+                        'origin' => '127.0.0.1',
+                        'url'    => 'https://httpbin.org/get'
+                    ]
+                )
+            )
         );
 
         $promise = $apiService->callAsync('dumpGetRequest');
-        assertThat($promise, isInstanceOf(Promise::class));
 
-        $resource = $promise->wait();
-        assertThat($resource, isInstanceOf(Resource::class));
-    }*/
+        assertThat($promise, isInstanceOf(Promise::class));
+        assertThat($promise->wait(), isInstanceOf(Item::class));
+    }
 
     /** @test */
     public function itValidateTheRequestByDefault()
@@ -146,5 +170,25 @@ class ApiServiceTest extends TestCase
         assertThat($resource, isInstanceOf(Collection::class));
         assertThat($resource->hasPagination(), isTrue());
         assertThat($resource->getPagination(), isInstanceOf(Pagination::class));
+    }
+
+    /** @test */
+    public function itDoesNotTryToValidateTheResponseBodyIfNoBodySchemaIsProvided()
+    {
+        $apiService = ApiServiceBuilder::create()
+            ->enableResponseValidation()
+            ->withHttpClient($this->httpMockClient)
+            ->withMessageFactory($messageFactory = MessageFactoryDiscovery::find())
+            ->build($this->schemaFile);
+
+        $this->httpMockClient->addResponse(
+            $messageFactory->createResponse(201)
+        );
+
+        $result = $apiService->call('postResponseWithoutBody');
+
+        assertThat($result, isInstanceOf(Item::class));
+        assertThat($result->getData(), isEmpty());
+        assertThat($result->getMeta(), arrayHasKey('Host'));
     }
 }

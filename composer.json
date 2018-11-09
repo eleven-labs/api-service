@@ -21,6 +21,7 @@
     },
     "require": {
         "php": "^5.6|^7.1",
+        "ext-json": "*",
         "php-http/httplug": "^1.0",
         "php-http/message": "^1.3",
         "eleven-labs/api-validator": "^0.5",
