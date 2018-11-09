@@ -9,6 +9,7 @@ use ElevenLabs\Api\Schema;
 use ElevenLabs\Api\Service\Exception\ConstraintViolations;
 use ElevenLabs\Api\Service\Exception\RequestViolations;
 use ElevenLabs\Api\Service\Exception\ResponseViolations;
+use ElevenLabs\Api\Service\Resource\Item;
 use ElevenLabs\Api\Service\Resource\Resource;
 use ElevenLabs\Api\Validator\MessageValidator;
 use Http\Client\HttpAsyncClient;
@@ -118,7 +119,7 @@ class ApiService
      * @param string $operationId The name of your operation as described in the API Schema
      * @param array $params An array of request parameters
      *
-     * @return mixed
+     * @return Resource|ResponseInterface
      */
     public function call($operationId, array $params = [])
     {
@@ -146,7 +147,7 @@ class ApiService
      * @param string $operationId The name of your operation as described in the API Schema
      * @param array $params An array of request parameters
      *
-     * @return Promise
+     * @return Promise<ResponseInterface|Resource>
      */
     public function callAsync($operationId, array $params = [])
     {
@@ -326,7 +327,7 @@ class ApiService
      * @param ResponseDefinition $definition
      * @param RequestInterface $request
      *
-     * @return Resource|mixed
+     * @return Resource|ResponseInterface
      */
     private function getDataFromResponse(
         ResponseInterface $response,
@@ -335,6 +336,11 @@ class ApiService
     ) {
         if ($this->config['returnResponse'] === true) {
             return $response;
+        }
+
+        // @todo Find a better way to handle responses with a body definition
+        if (!$definition->hasBodySchema()) {
+            return new Item([], $request->getHeaders());
         }
 
         return $this->serializer->deserialize(

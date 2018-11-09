@@ -93,16 +93,6 @@ class ApiServiceTest extends TestCase
         $this->getApiService();
     }
 
-    public function itCanMakeASynchronousCall()
-    {
-        // @todo make unit test for itCanMakeASynchronousCall()
-    }
-
-    public function itCanMakeAnAsynchronousCall()
-    {
-        // @todo make unit test for itCanMakeAnAsynchronousCall()
-    }
-
     private function getApiService()
     {
         return new ApiService(

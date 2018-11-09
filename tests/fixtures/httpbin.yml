@@ -19,6 +19,13 @@ produces:
   - application/json
 
 paths:
+  /post:
+    post:
+      operationId: postResponseWithoutBody
+      responses:
+        201:
+          description: 'Created'
+
   /get/collection:
     get:
       operationId: getFakeCollection
@@ -36,6 +43,7 @@ paths:
         - name: aPath
           in: path
           type: string
+          required: true
         - name: aDate
           in: query
           type: string
