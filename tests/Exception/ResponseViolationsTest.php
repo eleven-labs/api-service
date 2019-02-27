@@ -1,8 +1,12 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Exception;
 
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class ResponseViolationsTest.
+ */
 class ResponseViolationsTest extends TestCase
 {
     /** @test */

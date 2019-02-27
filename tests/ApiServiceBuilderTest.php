@@ -1,4 +1,5 @@
 <?php
+
 namespace ElevenLabs\Api\Service;
 
 use ElevenLabs\Api\Schema;
@@ -6,6 +7,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
+/**
+ * Class ApiServiceBuilderTest.
+ */
 class ApiServiceBuilderTest extends TestCase
 {
     /** @test */

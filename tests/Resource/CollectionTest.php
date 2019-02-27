@@ -1,16 +1,13 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: guillem
- * Date: 24/08/2016
- * Time: 15:55
- */
 
 namespace ElevenLabs\Api\Service\Resource;
 
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class CollectionTest.
+ */
 class CollectionTest extends TestCase
 {
     /** @test */

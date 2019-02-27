@@ -1,9 +1,11 @@
 <?php
+
 namespace ElevenLabs\Api\Service;
 
 use ElevenLabs\Api\Decoder\Adapter\SymfonyDecoderAdapter;
 use ElevenLabs\Api\Factory\CachedSchemaFactoryDecorator;
 use ElevenLabs\Api\Factory\SwaggerSchemaFactory;
+use ElevenLabs\Api\Schema;
 use ElevenLabs\Api\Service\Denormalizer\ResourceDenormalizer;
 use ElevenLabs\Api\Service\Pagination\PaginationProvider;
 use ElevenLabs\Api\Validator\MessageValidator;
@@ -26,26 +28,79 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Builder for ApiService instances
+ *
+ * Class ApiServiceBuilder.
  */
 class ApiServiceBuilder
 {
+    /**
+     * @var HttpClient
+     */
     private $httpClient;
+
+    /**
+     * @var MessageFactory
+     */
     private $messageFactory;
+
+    /**
+     * @var UriFactory
+     */
     private $uriFactory;
+
+    /**
+     * @var SerializerInterface
+     */
     private $serializer;
+
+    /**
+     * @var array
+     */
     private $denormalizers = [];
+
+    /**
+     * @var array
+     */
     private $encoders = [];
+
+    /**
+     * @var Schema
+     */
     private $schema;
+
+    /**
+     * @var CacheItemPoolInterface
+     */
     private $cache;
+
+    /**
+     * @var array
+     */
     private $config = [];
+
+    /**
+     * @var PaginationProvider|null
+     */
     private $paginationProvider = null;
+
+    /**
+     * @var MessageValidator
+     */
     private $requestValidator;
 
+    /**
+     * @return ApiServiceBuilder
+     */
     public static function create()
     {
         return new static();
     }
 
+    /**
+     * @param CacheItemPoolInterface $cache
+     *
+     * @return $this
+     */
     public function withCacheProvider(CacheItemPoolInterface $cache)
     {
         $this->cache = $cache;
@@ -53,6 +108,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param HttpClient $httpClient
+     *
+     * @return $this
+     */
     public function withHttpClient(HttpClient $httpClient)
     {
         $this->httpClient = $httpClient;
@@ -60,6 +120,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param MessageFactory $messageFactory
+     *
+     * @return $this
+     */
     public function withMessageFactory(MessageFactory $messageFactory)
     {
         $this->messageFactory = $messageFactory;
@@ -67,6 +132,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param UriFactory $uriFactory
+     *
+     * @return $this
+     */
     public function withUriFactory(UriFactory $uriFactory)
     {
         $this->uriFactory = $uriFactory;
@@ -74,6 +144,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param SerializerInterface $serializer
+     *
+     * @return $this
+     */
     public function withSerializer(SerializerInterface $serializer)
     {
         $this->serializer = $serializer;
@@ -81,6 +156,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param EncoderInterface $encoder
+     *
+     * @return $this
+     */
     public function withEncoder(EncoderInterface $encoder)
     {
         $this->encoders[] = $encoder;
@@ -88,6 +168,11 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param NormalizerInterface $normalizer
+     *
+     * @return $this
+     */
     public function withDenormalizer(NormalizerInterface $normalizer)
     {
         $this->denormalizers[] = $normalizer;
@@ -95,11 +180,23 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param PaginationProvider $paginationProvider
+     *
+     * @return $this
+     */
     public function withPaginationProvider(PaginationProvider $paginationProvider)
     {
         $this->paginationProvider = $paginationProvider;
+
+        return $this;
     }
 
+    /**
+     * @param string $baseUri
+     *
+     * @return $this
+     */
     public function withBaseUri($baseUri)
     {
         $this->config['baseUri'] = $baseUri;
@@ -107,6 +204,9 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function disableRequestValidation()
     {
         $this->config['validateRequest'] = false;
@@ -114,6 +214,9 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function enableResponseValidation()
     {
         $this->config['validateResponse'] = true;
@@ -121,6 +224,9 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @return $this
+     */
     public function returnResponse()
     {
         $this->config['returnResponse'] = true;
@@ -128,6 +234,13 @@ class ApiServiceBuilder
         return $this;
     }
 
+    /**
+     * @param $schemaPath
+     *
+     * @throws \Assert\AssertionFailedException
+     *
+     * @return ApiService
+     */
     public function build($schemaPath)
     {
         // Build serializer

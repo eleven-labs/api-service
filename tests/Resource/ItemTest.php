@@ -1,8 +1,12 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Resource;
 
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class ItemTest.
+ */
 class ItemTest extends TestCase
 {
     /** @test */

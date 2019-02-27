@@ -42,56 +42,107 @@ class HateoasPaginationTest extends TestCase
         ];
     }
 
-    /** @test */
-    public function itNotHavePaginationWhenLinkFieldIsEmpty()
+    /**
+     * @test
+     *
+     * @dataProvider dataProviderItNotHavePaginationWhenLinkFieldIsEmpty
+     */
+    public function itNotHavePaginationWhenLinkFieldIsEmpty($data)
     {
-        $data = [
-            'page' => 1,
-            'perPage' => 10,
-            'totalItems' => 20,
-            'totalPages' => 2,
-            '_links' => [],
-            '_embedded' => ['item' => []],
-        ];
         $provider = new HateoasPagination($this->fields);
         $pagination = $provider->getPagination($data, $this->response, $this->responseDefinition);
         $this->assertInstanceOf(Pagination::class, $pagination);
-        $this->assertEquals(1, $pagination->getPage());
-        $this->assertEquals(10, $pagination->getPerPage());
-        $this->assertEquals(20, $pagination->getTotalItems());
-        $this->assertEquals(2, $pagination->getTotalPages());
+        $this->assertSame(1, $pagination->getPage());
+        $this->assertSame(10, $pagination->getPerPage());
+        $this->assertSame(20, $pagination->getTotalItems());
+        $this->assertSame(2, $pagination->getTotalPages());
         $this->assertNull($pagination->getLinks());
         $this->assertEquals([], $data);
     }
 
-    /** @test */
-    public function itHavePaginationWhenLinkFieldIsNotEmpty()
+    /**
+     * @return array
+     */
+    public function dataProviderItNotHavePaginationWhenLinkFieldIsEmpty()
     {
-        $data = [
-            'page' => 1,
-            'perPage' => 10,
-            'totalItems' => 20,
-            'totalPages' => 2,
-            '_links' => [
-                'self' => ['href' => 'http://example.org/self'],
-                'first' => ['href' => 'http://example.org/first'],
-                'last' => ['href' => 'http://example.org/last'],
+        return [
+            [
+                [
+                    'page' => 1,
+                    'perPage' => 10,
+                    'totalItems' => 20,
+                    'totalPages' => 2,
+                    '_links' => [],
+                    '_embedded' => ['item' => []],
+                ]
             ],
-            '_embedded' => ['item' => []],
+            [
+                [
+                    'page' => '1',
+                    'perPage' => '10',
+                    'totalItems' => '20',
+                    'totalPages' => '2',
+                    '_links' => [],
+                    '_embedded' => ['item' => []],
+                ],
+            ],
         ];
+    }
+
+    /**
+     * @test
+     *
+     * @dataProvider dataProviderItHavePaginationWhenLinkFieldIsNotEmpty
+     */
+    public function itHavePaginationWhenLinkFieldIsNotEmpty($data)
+    {
         $provider = new HateoasPagination($this->fields);
         $pagination = $provider->getPagination($data, $this->response, $this->responseDefinition);
         $this->assertInstanceOf(Pagination::class, $pagination);
-        $this->assertEquals(1, $pagination->getPage());
-        $this->assertEquals(10, $pagination->getPerPage());
-        $this->assertEquals(20, $pagination->getTotalItems());
-        $this->assertEquals(2, $pagination->getTotalPages());
+        $this->assertSame(1, $pagination->getPage());
+        $this->assertSame(10, $pagination->getPerPage());
+        $this->assertSame(20, $pagination->getTotalItems());
+        $this->assertSame(2, $pagination->getTotalPages());
         $this->assertInstanceOf(PaginationLinks::class, $pagination->getLinks());
-        $this->assertEquals('http://example.org/first', $pagination->getLinks()->getFirst());
-        $this->assertEquals('http://example.org/last', $pagination->getLinks()->getLast());
+        $this->assertSame('http://example.org/first', $pagination->getLinks()->getFirst());
+        $this->assertSame('http://example.org/last', $pagination->getLinks()->getLast());
         $this->assertFalse($pagination->getLinks()->hasNext());
         $this->assertFalse($pagination->getLinks()->hasPrev());
-        $this->assertEquals([], $data);
+        $this->assertSame([], $data);
+    }
+
+    public function dataProviderItHavePaginationWhenLinkFieldIsNotEmpty()
+    {
+        return [
+            [
+                [
+                    'page' => 1,
+                    'perPage' => 10,
+                    'totalItems' => 20,
+                    'totalPages' => 2,
+                    '_links' => [
+                        'self' => ['href' => 'http://example.org/self'],
+                        'first' => ['href' => 'http://example.org/first'],
+                        'last' => ['href' => 'http://example.org/last'],
+                    ],
+                    '_embedded' => ['item' => []],
+                ],
+            ],
+            [
+                [
+                    'page' => '1',
+                    'perPage' => '10',
+                    'totalItems' => '20',
+                    'totalPages' => '2',
+                    '_links' => [
+                        'self' => ['href' => 'http://example.org/self'],
+                        'first' => ['href' => 'http://example.org/first'],
+                        'last' => ['href' => 'http://example.org/last'],
+                    ],
+                    '_embedded' => ['item' => []],
+                ],
+            ],
+        ];
     }
 
     /** @test */
@@ -110,6 +161,24 @@ class HateoasPaginationTest extends TestCase
             'perPage' => 10,
             'totalItems' => 20,
             'totalPages' => 2,
+        ];
+        $provider = new HateoasPagination($this->fields);
+        $this->assertFalse($provider->supportPagination($data, $this->response, $this->responseDefinition));
+    }
+
+    /** @test */
+    public function itNotSupportPaginationWhenThereAreNotPageField()
+    {
+        $data = [
+            'perPage' => 10,
+            'totalItems' => 20,
+            'totalPages' => 2,
+            '_links' => [
+                'self' => ['href' => 'http://example.org/self'],
+                'first' => ['href' => 'http://example.org/first'],
+                'last' => ['href' => 'http://example.org/last'],
+            ],
+            '_embedded' => ['item' => []],
         ];
         $provider = new HateoasPagination($this->fields);
         $this->assertFalse($provider->supportPagination($data, $this->response, $this->responseDefinition));

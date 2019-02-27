@@ -1,9 +1,13 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Exception;
 
 use ElevenLabs\Api\Validator\ConstraintViolation;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class ConstraintViolationsTest.
+ */
 class ConstraintViolationsTest extends TestCase
 {
     /** @test */

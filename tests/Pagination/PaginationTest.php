@@ -1,8 +1,12 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Pagination;
 
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class PaginationTest.
+ */
 class PaginationTest extends TestCase
 {
     /** @test */

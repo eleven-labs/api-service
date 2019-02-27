@@ -1,4 +1,5 @@
 <?php
+
 namespace ElevenLabs\Api\Service\Denormalizer;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
@@ -11,8 +12,10 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
-use Prophecy\Prophecy\ObjectProphecy;
 
+/**
+ * Class ResourceDenormalizerTest.
+ */
 class ResourceDenormalizerTest extends TestCase
 {
     /** @test */
@@ -170,7 +173,6 @@ class ResourceDenormalizerTest extends TestCase
         $jsonSchema = (object) [
             'allOf' => [
                 (object) ['type'=> 'object'],
-                (object) ['type'=> 'object'],
             ]
         ];
 
@@ -198,6 +200,7 @@ class ResourceDenormalizerTest extends TestCase
         );
 
         assertThat($resource, isInstanceOf(Item::class));
+        $this->assertSame(['headers' => null], $resource->getMeta());
     }
 
     /** @test */
@@ -219,7 +222,7 @@ class ResourceDenormalizerTest extends TestCase
         $paginationProvider->supportPagination()->shouldNotBeCalled();
 
         $denormalizer = new ResourceDenormalizer($paginationProvider->reveal());
-        $resource = $denormalizer->denormalize(
+        $denormalizer->denormalize(
             ['foo' => 'bar'],
             Resource::class,
             null,
