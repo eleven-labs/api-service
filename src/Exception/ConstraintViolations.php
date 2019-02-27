@@ -21,6 +21,7 @@ class ConstraintViolations extends ApiServiceError
     {
         $this->violations = $violations;
         $this->message = $this->__toString();
+        parent::__construct();
     }
 
     /**
