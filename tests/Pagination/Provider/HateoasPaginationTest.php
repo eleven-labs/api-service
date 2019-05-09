@@ -1,17 +1,18 @@
 <?php
 
-namespace ElevenLabs\Api\Service\Pagination\Provider;
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Pagination\Provider\Tests;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use ElevenLabs\Api\Service\Pagination\PaginationLinks;
+use ElevenLabs\Api\Service\Pagination\Provider\HateoasPagination;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Class HateoasPaginationTest
- *
- * @package ElevenLabs\Api\Service\Pagination\Provider
+ * Class HateoasPaginationTest.
  */
 class HateoasPaginationTest extends TestCase
 {
@@ -38,7 +39,7 @@ class HateoasPaginationTest extends TestCase
             HateoasPagination::DEFAULT_PAGINATION_VALUE['page'] => "page",
             HateoasPagination::DEFAULT_PAGINATION_VALUE['perPage'] => 'perPage',
             HateoasPagination::DEFAULT_PAGINATION_VALUE['totalItems'] => 'totalItems',
-            HateoasPagination::DEFAULT_PAGINATION_VALUE['totalPages'] => 'totalPages'
+            HateoasPagination::DEFAULT_PAGINATION_VALUE['totalPages'] => 'totalPages',
         ];
     }
 
@@ -46,11 +47,14 @@ class HateoasPaginationTest extends TestCase
      * @test
      *
      * @dataProvider dataProviderItNotHavePaginationWhenLinkFieldIsEmpty
+     *
+     * @param array $data
      */
-    public function itNotHavePaginationWhenLinkFieldIsEmpty($data)
+    public function itNotHavePaginationWhenLinkFieldIsEmpty(array $data)
     {
         $provider = new HateoasPagination($this->fields);
         $pagination = $provider->getPagination($data, $this->response, $this->responseDefinition);
+
         $this->assertInstanceOf(Pagination::class, $pagination);
         $this->assertSame(1, $pagination->getPage());
         $this->assertSame(10, $pagination->getPerPage());
@@ -63,7 +67,7 @@ class HateoasPaginationTest extends TestCase
     /**
      * @return array
      */
-    public function dataProviderItNotHavePaginationWhenLinkFieldIsEmpty()
+    public function dataProviderItNotHavePaginationWhenLinkFieldIsEmpty(): array
     {
         return [
             [
@@ -74,7 +78,7 @@ class HateoasPaginationTest extends TestCase
                     'totalPages' => 2,
                     '_links' => [],
                     '_embedded' => ['item' => []],
-                ]
+                ],
             ],
             [
                 [
@@ -93,8 +97,10 @@ class HateoasPaginationTest extends TestCase
      * @test
      *
      * @dataProvider dataProviderItHavePaginationWhenLinkFieldIsNotEmpty
+     *
+     * @param array $data
      */
-    public function itHavePaginationWhenLinkFieldIsNotEmpty($data)
+    public function itHavePaginationWhenLinkFieldIsNotEmpty(array $data)
     {
         $provider = new HateoasPagination($this->fields);
         $pagination = $provider->getPagination($data, $this->response, $this->responseDefinition);
@@ -111,7 +117,7 @@ class HateoasPaginationTest extends TestCase
         $this->assertSame([], $data);
     }
 
-    public function dataProviderItHavePaginationWhenLinkFieldIsNotEmpty()
+    public function dataProviderItHavePaginationWhenLinkFieldIsNotEmpty(): array
     {
         return [
             [
@@ -185,10 +191,11 @@ class HateoasPaginationTest extends TestCase
     }
 
     /**
+     * @test
+     *
      * @param array $links
      *
      * @dataProvider dataProviderItNotSupportPaginationWhenThereAreNotLinks
-     * @test
      */
     public function itNotSupportPaginationWhenThereAreNotLinks(array $links)
     {
@@ -241,7 +248,7 @@ class HateoasPaginationTest extends TestCase
         $this->assertTrue($provider->supportPagination($data, $this->response, $this->responseDefinition));
     }
 
-    public function dataProviderItNotSupportPaginationWhenThereAreNotLinks()
+    public function dataProviderItNotSupportPaginationWhenThereAreNotLinks(): array
     {
         return [
             [
@@ -255,8 +262,8 @@ class HateoasPaginationTest extends TestCase
                 ],
                 [
                     'last' => ['href' => 'http://example.org'],
-                ]
-            ]
+                ],
+            ],
         ];
     }
 }

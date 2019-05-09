@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service\Pagination;
 
 /**
@@ -7,16 +9,24 @@ namespace ElevenLabs\Api\Service\Pagination;
  */
 class PaginationLinks
 {
-    /** @var string */
+    /**
+     * @var string
+     */
     private $first;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     private $last;
 
-    /** @var string */
+    /**
+     * @var string|null
+     */
     private $next;
 
-    /** @var string */
+    /**
+     * @var string|null
+     */
     private $prev;
 
     /**
@@ -27,7 +37,7 @@ class PaginationLinks
      * @param string|null $next
      * @param string|null $prev
      */
-    public function __construct($first, $last, $next = null, $prev = null)
+    public function __construct(string $first, string $last, ?string $next = null, ?string $prev = null)
     {
         $this->first = $first;
         $this->last = $last;
@@ -38,7 +48,7 @@ class PaginationLinks
     /**
      * @return string
      */
-    public function getFirst()
+    public function getFirst(): string
     {
         return $this->first;
     }
@@ -46,15 +56,15 @@ class PaginationLinks
     /**
      * @return bool
      */
-    public function hasNext()
+    public function hasNext(): bool
     {
-        return ($this->next !== null);
+        return null !== $this->next;
     }
 
     /**
      * @return string
      */
-    public function getNext()
+    public function getNext(): ?string
     {
         return $this->next;
     }
@@ -62,15 +72,15 @@ class PaginationLinks
     /**
      * @return bool
      */
-    public function hasPrev()
+    public function hasPrev(): bool
     {
-        return ($this->prev !== null);
+        return null !== $this->prev;
     }
 
     /**
      * @return string
      */
-    public function getPrev()
+    public function getPrev(): ?string
     {
         return $this->prev;
     }
@@ -78,7 +88,7 @@ class PaginationLinks
     /**
      * @return string
      */
-    public function getLast()
+    public function getLast(): string
     {
         return $this->last;
     }

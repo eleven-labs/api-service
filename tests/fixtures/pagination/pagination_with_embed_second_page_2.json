@@ -1,0 +1,86 @@
+{
+  "_links": {
+    "self": {
+      "href": "/videos?page=2"
+    },
+    "first": {
+      "href": "/videos?page=1"
+    },
+    "last": {
+      "href": "/videos?page=2"
+    },
+    "prev": {
+      "href": "/videos?page=1"
+    },
+    "item": [
+      {
+        "href": "/videos/lilly-russel"
+      },
+      {
+        "href": "/videos/anthony-bartoletti"
+      }
+    ]
+  },
+  "totalItems": "4",
+  "itemsPerPage": "2",
+  "_embedded": {
+    "item": [
+      {
+        "_links": {
+          "self": {
+            "href": "/videos/lilly-russel"
+          },
+          "category": {
+            "href": "/categories/lorem-ipsum-dolor-sit-amet-consectetur-adipiscing-elit"
+          }
+        },
+        "_embedded": {
+          "category": {
+            "_links": {
+              "self": {
+                "href": "/categories/lorem-ipsum-dolor-sit-amet-consectetur-adipiscing-elit"
+              }
+            },
+            "title": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+            "slug": "lorem-ipsum-dolor-sit-amet-consectetur-adipiscing-elit",
+            "dateCreated": "2019-05-09T21:46:33+00:00",
+            "dateModified": "2019-05-09T21:46:33+00:00"
+          }
+        },
+        "nickName": "Lilly RUSSEL",
+        "slug": "lilly-russel",
+        "score": 0,
+        "dateCreated": "2019-05-09T21:46:35+00:00",
+        "dateModified": "2019-05-09T21:46:35+00:00"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/videos/anthony-bartoletti"
+          },
+          "category": {
+            "href": "/categories/sed-sollicitudin-purus"
+          }
+        },
+        "_embedded": {
+          "category": {
+            "_links": {
+              "self": {
+                "href": "/categories/sed-sollicitudin-purus"
+              }
+            },
+            "title": "sed sollicitudin purus",
+            "slug": "sed-sollicitudin-purus",
+            "dateCreated": "2019-05-09T21:46:33+00:00",
+            "dateModified": "2019-05-09T21:46:33+00:00"
+          }
+        },
+        "nickName": "Anthony BARTOLETTI",
+        "slug": "anthony-bartoletti",
+        "score": 0,
+        "dateCreated": "2019-05-09T21:46:35+00:00",
+        "dateModified": "2019-05-09T21:46:35+00:00"
+      }
+    ]
+  }
+}

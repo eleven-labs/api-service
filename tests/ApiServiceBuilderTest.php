@@ -1,8 +1,12 @@
 <?php
 
-namespace ElevenLabs\Api\Service;
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests;
 
 use ElevenLabs\Api\Schema;
+use ElevenLabs\Api\Service\ApiService;
+use ElevenLabs\Api\Service\ApiServiceBuilder;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
@@ -18,7 +22,7 @@ class ApiServiceBuilderTest extends TestCase
         $schemaFixture = __DIR__.'/fixtures/httpbin.yml';
         $apiService = ApiServiceBuilder::create()->build('file://'.$schemaFixture);
 
-        assertThat($apiService, isInstanceOf(ApiService::class));
+        $this->assertInstanceOf(ApiService::class, $apiService);
     }
 
     /** @test */

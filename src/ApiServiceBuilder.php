@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service;
 
 use ElevenLabs\Api\Decoder\Adapter\SymfonyDecoderAdapter;
@@ -7,7 +9,7 @@ use ElevenLabs\Api\Factory\CachedSchemaFactoryDecorator;
 use ElevenLabs\Api\Factory\SwaggerSchemaFactory;
 use ElevenLabs\Api\Schema;
 use ElevenLabs\Api\Service\Denormalizer\ResourceDenormalizer;
-use ElevenLabs\Api\Service\Pagination\PaginationProvider;
+use ElevenLabs\Api\Service\Pagination\Provider\PaginationProviderInterface;
 use ElevenLabs\Api\Validator\MessageValidator;
 use Http\Client\HttpClient;
 use Http\Discovery\HttpClientDiscovery;
@@ -79,7 +81,7 @@ class ApiServiceBuilder
     private $config = [];
 
     /**
-     * @var PaginationProvider|null
+     * @var PaginationProviderInterface|null
      */
     private $paginationProvider = null;
 
@@ -91,7 +93,7 @@ class ApiServiceBuilder
     /**
      * @return ApiServiceBuilder
      */
-    public static function create()
+    public static function create(): ApiServiceBuilder
     {
         return new static();
     }
@@ -101,7 +103,7 @@ class ApiServiceBuilder
      *
      * @return $this
      */
-    public function withCacheProvider(CacheItemPoolInterface $cache)
+    public function withCacheProvider(CacheItemPoolInterface $cache): self
     {
         $this->cache = $cache;
 
@@ -113,7 +115,7 @@ class ApiServiceBuilder
      *
      * @return $this
      */
-    public function withHttpClient(HttpClient $httpClient)
+    public function withHttpClient(HttpClient $httpClient): self
     {
         $this->httpClient = $httpClient;
 
@@ -125,7 +127,7 @@ class ApiServiceBuilder
      *
      * @return $this
      */
-    public function withMessageFactory(MessageFactory $messageFactory)
+    public function withMessageFactory(MessageFactory $messageFactory): self
     {
         $this->messageFactory = $messageFactory;
 
@@ -137,7 +139,7 @@ class ApiServiceBuilder
      *
      * @return $this
      */
-    public function withUriFactory(UriFactory $uriFactory)
+    public function withUriFactory(UriFactory $uriFactory): self
     {
         $this->uriFactory = $uriFactory;
 
@@ -149,7 +151,7 @@ class ApiServiceBuilder
      *
      * @return $this
      */
-    public function withSerializer(SerializerInterface $serializer)
+    public function withSerializer(SerializerInterface $serializer): self
     {
         $this->serializer = $serializer;
 
@@ -161,7 +163,7 @@ class ApiServiceBuilder
      *
      * @return $this
      */
-    public function withEncoder(EncoderInterface $encoder)
+    public function withEncoder(EncoderInterface $encoder): self
     {
         $this->encoders[] = $encoder;
 
@@ -173,7 +175,7 @@ class ApiServiceBuilder
      *
      * @return $this
      */
-    public function withDenormalizer(NormalizerInterface $normalizer)
+    public function withDenormalizer(NormalizerInterface $normalizer): self
     {
         $this->denormalizers[] = $normalizer;
 
@@ -181,11 +183,11 @@ class ApiServiceBuilder
     }
 
     /**
-     * @param PaginationProvider $paginationProvider
+     * @param PaginationProviderInterface $paginationProvider
      *
      * @return $this
      */
-    public function withPaginationProvider(PaginationProvider $paginationProvider)
+    public function withPaginationProvider(PaginationProviderInterface $paginationProvider): self
     {
         $this->paginationProvider = $paginationProvider;
 
@@ -197,7 +199,7 @@ class ApiServiceBuilder
      *
      * @return $this
      */
-    public function withBaseUri($baseUri)
+    public function withBaseUri(string $baseUri): self
     {
         $this->config['baseUri'] = $baseUri;
 
@@ -207,7 +209,7 @@ class ApiServiceBuilder
     /**
      * @return $this
      */
-    public function disableRequestValidation()
+    public function disableRequestValidation(): self
     {
         $this->config['validateRequest'] = false;
 
@@ -217,7 +219,7 @@ class ApiServiceBuilder
     /**
      * @return $this
      */
-    public function enableResponseValidation()
+    public function enableResponseValidation(): self
     {
         $this->config['validateResponse'] = true;
 
@@ -227,7 +229,7 @@ class ApiServiceBuilder
     /**
      * @return $this
      */
-    public function returnResponse()
+    public function returnResponse(): self
     {
         $this->config['returnResponse'] = true;
 
@@ -235,16 +237,16 @@ class ApiServiceBuilder
     }
 
     /**
-     * @param $schemaPath
+     * @param string $schemaPath
      *
      * @throws \Assert\AssertionFailedException
      *
      * @return ApiService
      */
-    public function build($schemaPath)
+    public function build(string $schemaPath): ApiService
     {
         // Build serializer
-        if ($this->serializer === null) {
+        if (null === $this->serializer) {
             if (empty($this->encoders)) {
                 $this->encoders = [new JsonEncoder(), new XmlEncoder()];
             }
@@ -259,20 +261,20 @@ class ApiServiceBuilder
             );
         }
 
-        if ($this->uriFactory === null) {
+        if (null === $this->uriFactory) {
             $this->uriFactory = UriFactoryDiscovery::find();
         }
 
-        if ($this->messageFactory === null) {
+        if (null === $this->messageFactory) {
             $this->messageFactory = MessageFactoryDiscovery::find();
         }
 
-        if ($this->httpClient === null) {
+        if (null === $this->httpClient) {
             $this->httpClient = HttpClientDiscovery::find();
         }
 
         $schemaFactory = new SwaggerSchemaFactory();
-        if ($this->cache !== null) {
+        if (null !== $this->cache) {
             $schemaFactory = new CachedSchemaFactoryDecorator(
                 $this->cache,
                 $schemaFactory

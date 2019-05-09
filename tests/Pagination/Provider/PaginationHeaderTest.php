@@ -1,10 +1,13 @@
 <?php
 
-namespace ElevenLabs\Api\Service\Pagination\Provider;
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Pagination\Provider\Tests;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use ElevenLabs\Api\Service\Pagination\PaginationLinks;
+use ElevenLabs\Api\Service\Pagination\Provider\PaginationHeader;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 
@@ -120,10 +123,10 @@ class PaginationHeaderTest extends TestCase
 
         $paginationLinks = $pagination->getLinks();
 
-        assertThat($paginationLinks, isInstanceOf(PaginationLinks::class));
-        assertThat($paginationLinks->getFirst(), equalTo('http://domain.tld?page=1'));
-        assertThat($paginationLinks->getLast(), equalTo('http://domain.tld?page=10'));
-        assertThat($paginationLinks->getNext(), equalTo('http://domain.tld?page=4'));
-        assertThat($paginationLinks->getPrev(), equalTo('http://domain.tld?page=2'));
+        $this->assertInstanceOf(PaginationLinks::class, $paginationLinks);
+        $this->assertSame('http://domain.tld?page=1', $paginationLinks->getFirst());
+        $this->assertSame('http://domain.tld?page=10', $paginationLinks->getLast());
+        $this->assertSame('http://domain.tld?page=4', $paginationLinks->getNext());
+        $this->assertSame('http://domain.tld?page=2', $paginationLinks->getPrev());
     }
 }

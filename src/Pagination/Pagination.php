@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service\Pagination;
 
 /**
@@ -29,7 +31,7 @@ class Pagination
      * @param int                  $totalPages
      * @param PaginationLinks|null $links
      */
-    public function __construct($page, $perPage, $totalItems, $totalPages, $links = null)
+    public function __construct(int $page, int $perPage, int $totalItems, int $totalPages, ?PaginationLinks $links = null)
     {
         $this->page = $page;
         $this->perPage = $perPage;
@@ -41,7 +43,7 @@ class Pagination
     /**
      * @return int
      */
-    public function getPage()
+    public function getPage(): int
     {
         return $this->page;
     }
@@ -49,7 +51,7 @@ class Pagination
     /**
      * @return int
      */
-    public function getPerPage()
+    public function getPerPage(): int
     {
         return $this->perPage;
     }
@@ -57,7 +59,7 @@ class Pagination
     /**
      * @return int
      */
-    public function getTotalItems()
+    public function getTotalItems(): int
     {
         return $this->totalItems;
     }
@@ -65,7 +67,7 @@ class Pagination
     /**
      * @return int
      */
-    public function getTotalPages()
+    public function getTotalPages(): int
     {
         return $this->totalPages;
     }
@@ -73,7 +75,7 @@ class Pagination
     /**
      * @return bool
      */
-    public function hasLinks()
+    public function hasLinks(): bool
     {
         return ($this->links !== null);
     }
@@ -81,7 +83,7 @@ class Pagination
     /**
      * @return PaginationLinks|null
      */
-    public function getLinks()
+    public function getLinks(): ?PaginationLinks
     {
         return $this->links;
     }

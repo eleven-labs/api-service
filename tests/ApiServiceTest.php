@@ -1,15 +1,17 @@
 <?php
 
-namespace ElevenLabs\Api\Service;
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests;
 
 use ElevenLabs\Api\Definition\Parameter;
 use ElevenLabs\Api\Definition\Parameters;
 use ElevenLabs\Api\Definition\RequestDefinition;
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Schema;
+use ElevenLabs\Api\Service\ApiService;
 use ElevenLabs\Api\Service\Exception\RequestViolations;
 use ElevenLabs\Api\Service\Exception\ResponseViolations;
-use ElevenLabs\Api\Service\Resource\Item;
 use ElevenLabs\Api\Validator\ConstraintViolation;
 use ElevenLabs\Api\Validator\MessageValidator;
 use GuzzleHttp\Psr7\Request;
@@ -31,6 +33,9 @@ class ApiServiceTest extends TestCase
 {
     /** @var Schema|MockObject */
     private $schema;
+
+    /** @var Schema|MockObject */
+    private $uri;
 
     /** @var UriFactory|MockObject */
     private $uriFactory;
@@ -55,6 +60,7 @@ class ApiServiceTest extends TestCase
 
     public function setUp()
     {
+        $this->uri = $this->createMock(UriInterface::class);
         $this->schema = $this->createMock(Schema::class);
         $this->uriFactory = $this->createMock(UriFactory::class);
         $this->uriTemplate = $this->createMock(UriTemplate::class);
@@ -104,7 +110,7 @@ class ApiServiceTest extends TestCase
         $this->schema->expects($this->exactly(2))->method('getSchemes')->willReturn(['http', 'https']);
         $this->schema->expects($this->exactly(1))->method('getHost')->willReturn('domain.tld');
 
-        $this->uriFactory->expects($this->exactly(1))->method('createUri')->with('https://domain.tld');
+        $this->uriFactory->expects($this->exactly(1))->method('createUri')->with('https://domain.tld')->willReturn($this->uri);
 
         $this->getApiService();
     }
@@ -115,7 +121,7 @@ class ApiServiceTest extends TestCase
         $this->schema->expects($this->exactly(2))->method('getSchemes')->willReturn(['http']);
         $this->schema->expects($this->exactly(1))->method('getHost')->willReturn('domain.tld');
 
-        $this->uriFactory->expects($this->exactly(1))->method('createUri')->with('http://domain.tld');
+        $this->uriFactory->expects($this->exactly(1))->method('createUri')->with('http://domain.tld')->willReturn($this->uri);
 
         $this->getApiService();
     }
@@ -125,7 +131,7 @@ class ApiServiceTest extends TestCase
     {
         $this->config['baseUri'] = 'https://somewhere.tld';
 
-        $this->uriFactory->expects($this->exactly(1))->method('createUri')->with('https://somewhere.tld');
+        $this->uriFactory->expects($this->exactly(1))->method('createUri')->with('https://somewhere.tld')->willReturn($this->uri);
 
         $this->getApiService();
     }
@@ -138,8 +144,8 @@ class ApiServiceTest extends TestCase
      * @param array $requestParams
      * @param array $expected
      *
-     * @throws Exception\ConstraintViolations
      * @throws \Assert\AssertionFailedException
+     * @throws \ElevenLabs\Api\Service\Exception\ConstraintViolations
      * @throws \Http\Client\Exception
      */
     public function itShouldUseDefaultValues(array $requestParams, array $expected)
@@ -356,6 +362,8 @@ class ApiServiceTest extends TestCase
      * @param array $localisations
      * @param array $requestParams
      * @param array $expected
+     *
+     * @throws \Assert\AssertionFailedException
      */
     public function itShouldCreateRequestFromDefinition(array $localisations, array $requestParams, array $expected)
     {
@@ -507,7 +515,13 @@ class ApiServiceTest extends TestCase
         ];
     }
 
-    /** @test */
+    /**
+     * @test
+     *
+     * @throws \Assert\AssertionFailedException
+     * @throws \ElevenLabs\Api\Service\Exception\ConstraintViolations
+     * @throws \Http\Client\Exception
+     */
     public function itCanMakeASynchronousCallWithoutDefaultValueAndParameters()
     {
         $params = $this->getMockBuilder(Parameters::class)->disableOriginalConstructor()->getMock();
@@ -550,6 +564,7 @@ class ApiServiceTest extends TestCase
             $response = $this->createMock(ResponseInterface::class);
             $response->expects($this->once())->method('getStatusCode')->willReturn(200);
             $response->expects($this->once())->method('getBody')->willReturn($stream);
+            $response->expects($this->once())->method('getHeaderLine')->with('Content-Type')->willReturn('application/json');
 
             return $response;
         });
@@ -563,13 +578,18 @@ class ApiServiceTest extends TestCase
     }
 
     /**
-     * @dataProvider dataProviderItShouldThrowExceptionBecauseThereAreSomeError
-     *
      * @test
      *
-     * @expectedException \Assert\InvalidArgumentException
+     * @dataProvider dataProviderItShouldThrowExceptionBecauseThereAreSomeError
+     *
+     * @param array $config
+     *
+     * @expectedException \Assert\AssertionFailedException
+     *
+     * @throws \ElevenLabs\Api\Service\Exception\ConstraintViolations
+     * @throws \Http\Client\Exception
      */
-    public function itShouldThrowExceptionBecauseThereAreSomeError($config)
+    public function itShouldThrowExceptionBecauseThereAreSomeError(array $config)
     {
         $this->uriTemplate->expects($this->never())->method('expand');
 
@@ -592,7 +612,10 @@ class ApiServiceTest extends TestCase
         $this->assertInstanceOf(ResponseInterface::class, $response);
     }
 
-    public function dataProviderItShouldThrowExceptionBecauseThereAreSomeError()
+    /**
+     * @return array
+     */
+    public function dataProviderItShouldThrowExceptionBecauseThereAreSomeError(): array
     {
         return [
             [['returnResponse' => 'foo']],
@@ -832,7 +855,7 @@ class ApiServiceTest extends TestCase
      *
      * @return ApiService
      */
-    private function getApiService()
+    private function getApiService(): ApiService
     {
         return new ApiService(
             $this->uriFactory,

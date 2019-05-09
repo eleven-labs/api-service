@@ -1,6 +1,8 @@
 <?php
 
-namespace ElevenLabs\Api\Service\Functional;
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests\Functional;
 
 use ElevenLabs\Api\Service\ApiServiceBuilder;
 use ElevenLabs\Api\Service\Exception\RequestViolations;
@@ -50,7 +52,7 @@ class ApiServiceTest extends TestCase
                 $body         = json_encode(
                     [
                         'origin' => '127.0.0.1',
-                        'url'    => 'https://httpbin.org/get'
+                        'url'    => 'https://httpbin.org/get',
                     ]
                 )
             )
@@ -58,7 +60,7 @@ class ApiServiceTest extends TestCase
 
         $response = $apiService->call('dumpGetRequest');
 
-        assertThat($response, isInstanceOf(Item::class));
+        $this->assertInstanceOf(Item::class, $response);
     }
 
     /** @test */
@@ -77,7 +79,7 @@ class ApiServiceTest extends TestCase
                 $body         = json_encode(
                     [
                         'origin' => '127.0.0.1',
-                        'url'    => 'https://httpbin.org/get'
+                        'url'    => 'https://httpbin.org/get',
                     ]
                 )
             )
@@ -85,8 +87,8 @@ class ApiServiceTest extends TestCase
 
         $promise = $apiService->callAsync('dumpGetRequest');
 
-        assertThat($promise, isInstanceOf(Promise::class));
-        assertThat($promise->wait(), isInstanceOf(Item::class));
+        $this->assertInstanceOf(Promise::class, $promise);
+        $this->assertInstanceOf(Item::class, $promise->wait());
     }
 
     /** @test */
@@ -195,8 +197,9 @@ class ApiServiceTest extends TestCase
 
         $result = $apiService->call('postResponseWithoutBody');
 
-        assertThat($result, isInstanceOf(Item::class));
-        assertThat($result->getData(), isEmpty());
-        assertThat($result->getMeta(), arrayHasKey('Host'));
+        $this->assertInstanceOf(Item::class, $result);
+        $this->assertEmpty($result->getData());
+        $this->assertEmpty($result->getBody());
+        $this->assertArrayHasKey('Host', $result->getMeta());
     }
 }

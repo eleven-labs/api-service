@@ -1,8 +1,12 @@
 <?php
 
-namespace ElevenLabs\Api\Service\Resource;
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Resource\Tests;
 
 use ElevenLabs\Api\Service\Pagination\Pagination;
+use ElevenLabs\Api\Service\Resource\Collection;
+use ElevenLabs\Api\Service\Resource\ResourceInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -13,9 +17,9 @@ class CollectionTest extends TestCase
     /** @test */
     public function itIsAResource()
     {
-        $resource = new Collection([], []);
+        $resource = new Collection([], [], []);
 
-        assertThat($resource, isInstanceOf(Resource::class));
+        assertThat($resource, isInstanceOf(ResourceInterface::class));
     }
 
     /** @test */
@@ -23,20 +27,21 @@ class CollectionTest extends TestCase
     {
         $data = [['foo' => 'bar']];
         $meta = ['headers' => ['bat' => 'baz']];
-        $resource = new Collection($data, $meta);
+        $resource = new Collection($data, $meta, $data);
 
-        assertThat($resource->getData(), equalTo($data));
-        assertThat($resource->getMeta(), equalTo($meta));
-        assertThat($resource->hasPagination(), isFalse());
+        $this->assertSame($data, $resource->getData());
+        $this->assertSame($meta, $resource->getMeta());
+        $this->assertSame($data, $resource->getBody());
+        $this->assertFalse($resource->hasPagination());
     }
 
     /** @test */
     public function itProvideAPagination()
     {
         $pagination = new Pagination(1, 1, 1, 1);
-        $resource = new Collection([], [], $pagination);
+        $resource = new Collection([], [], [], $pagination);
 
-        assertThat($resource->getPagination(), equalTo($pagination));
+        $this->assertSame($pagination, $resource->getPagination());
     }
 
     /** @test */
@@ -47,10 +52,10 @@ class CollectionTest extends TestCase
             ['value' => 'bar'],
         ];
 
-        $resource = new Collection($data, []);
+        $resource = new Collection($data, [], $data);
 
-        assertThat($resource, isInstanceOf(\Traversable::class));
-        assertThat($resource, contains($data[0]));
-        assertThat($resource, contains($data[1]));
+        $this->assertInstanceOf(\Traversable::class, $resource);
+        $this->assertContains($data[0], $resource);
+        $this->assertContains($data[1], $resource);
     }
 }

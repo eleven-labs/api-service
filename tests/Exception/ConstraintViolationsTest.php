@@ -1,8 +1,13 @@
 <?php
 
-namespace ElevenLabs\Api\Service\Exception;
+declare(strict_types=1);
 
+namespace ElevenLabs\Api\Service\Exception\Tests;
+
+use ElevenLabs\Api\Service\Exception\ApiServiceError;
+use ElevenLabs\Api\Service\Exception\ConstraintViolations;
 use ElevenLabs\Api\Validator\ConstraintViolation;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -15,16 +20,21 @@ class ConstraintViolationsTest extends TestCase
     {
         $exception = new ConstraintViolations([]);
 
-        assertThat($exception, isInstanceOf(ApiServiceError::class));
+        $this->assertInstanceOf(ApiServiceError::class, $exception);
     }
 
     /** @test */
     public function itShouldProvideTheListOfViolations()
     {
-        $violationList = [$this->prophesize(ConstraintViolation::class)->reveal()];
+        /** @var ConstraintViolation|MockObject $violation */
+        $violation = $this->createMock(ConstraintViolation::class);
+        $violation->expects($this->once())->method('getProperty')->willReturn('foo');
+        $violation->expects($this->once())->method('getMessage')->willReturn('bar is not a string');
+        $violation->expects($this->once())->method('getConstraint')->willReturn('');
+        $violation->expects($this->once())->method('getLocation')->willReturn('foo');
 
-        $exception = new ConstraintViolations($violationList);
+        $exception = new ConstraintViolations([$violation]);
 
-        assertThat($exception->getViolations(), equalTo($violationList));
+        $this->assertSame([$violation], $exception->getViolations());
     }
 }

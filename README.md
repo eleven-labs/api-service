@@ -99,7 +99,7 @@ The builder provide additional methods to fine tune your API Service:
     > When using the default `ResourceDenormalizer`, you can provide a pagination provider to add
     > pagination informations into `Collection` objects. Available implementations can be found in the 
     > `src/Pagination/Provider` folder. You can create your own by implementing 
-    > the `ElevenLabs\Api\Service\Pagination\PaginationProvider` interface.
+    > the `ElevenLabs\Api\Service\Pagination\Provider\PaginationProviderInterface` interface.
 - `withDenormalizer(NormalizerInterface $normalizer)` 
 
     > Add a denormalizer used to denormalize `Response` decoded body.  

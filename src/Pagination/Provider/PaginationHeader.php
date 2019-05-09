@@ -1,21 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service\Pagination\Provider;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use ElevenLabs\Api\Service\Pagination\PaginationLinks;
-use ElevenLabs\Api\Service\Pagination\PaginationProvider;
 use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class PaginationHeader.
  */
-class PaginationHeader implements PaginationProvider
+class PaginationHeader implements PaginationProviderInterface
 {
     /**
-     * Default mapping for pagination request headers
-     *
      * @var array
      */
     const DEFAULT_PAGINATION_HEADERS = [
@@ -49,8 +48,14 @@ class PaginationHeader implements PaginationProvider
         }
     }
 
-    /** {@inheritdoc} */
-    public function getPagination(array &$data, ResponseInterface $response, ResponseDefinition $responseDefinition)
+    /**
+     * @param array              $data
+     * @param ResponseInterface  $response
+     * @param ResponseDefinition $responseDefinition
+     *
+     * @return Pagination
+     */
+    public function getPagination(array &$data, ResponseInterface $response, ResponseDefinition $responseDefinition): Pagination
     {
         $paginationLinks = null;
         if ($response->hasHeader('Link')) {
@@ -72,8 +77,14 @@ class PaginationHeader implements PaginationProvider
         );
     }
 
-    /** {@inheritdoc} */
-    public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition)
+    /**
+     * @param array              $data
+     * @param ResponseInterface  $response
+     * @param ResponseDefinition $responseDefinition
+     *
+     * @return bool
+     */
+    public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition): bool
     {
         $support = true;
         foreach ($this->paginationHeaders as $headerName) {
@@ -88,13 +99,14 @@ class PaginationHeader implements PaginationProvider
      *
      * @return array
      */
-    private static function parseHeaderLinks(array $headerLinks)
+    private static function parseHeaderLinks(array $headerLinks): array
     {
         $links = ['next' => null, 'prev' => null];
 
         foreach ($headerLinks as $headerLink) {
             preg_match('/rel="([^"]+)"/', $headerLink, $matches);
-            if (\count($matches) == 2 && in_array($matches[1], ['next', 'prev', 'first', 'last'])) {
+
+            if (2 === \count($matches) && in_array($matches[1], ['next', 'prev', 'first', 'last'])) {
                 $parts = explode(';', $headerLink);
                 $url = trim($parts[0], " <>");
                 $links[$matches[1]] = $url;
