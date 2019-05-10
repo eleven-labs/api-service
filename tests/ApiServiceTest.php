@@ -87,7 +87,7 @@ class ApiServiceTest extends TestCase
         $this->expectExceptionMessage('The host in the API Schema should not be null');
 
         $this->schema->expects($this->exactly(2))->method('getSchemes')->willReturn(['https']);
-        $this->schema->expects($this->once())->method('getHost')->willReturn(null);
+        $this->schema->expects($this->once())->method('getHost')->willReturn('');
 
         $this->getApiService();
     }

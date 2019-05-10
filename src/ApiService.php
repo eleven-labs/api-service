@@ -218,7 +218,7 @@ class ApiService
             }
 
             $host = $this->schema->getHost();
-            if (null === $host) {
+            if ('' === $host) {
                 throw new \LogicException('The host in the API Schema should not be null');
             }
 
