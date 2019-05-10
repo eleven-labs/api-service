@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ElevenLabs\Api\Service\Denormalizer\Tests;
+namespace ElevenLabs\Api\Service\Tests\Denormalizer;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Service\Denormalizer\ResourceDenormalizer;

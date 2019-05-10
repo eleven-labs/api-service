@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ElevenLabs\Api\Service\Pagination\Tests;
+namespace ElevenLabs\Api\Service\Tests\Pagination;
 
 use ElevenLabs\Api\Service\Pagination\PaginationLinks;
 use PHPUnit\Framework\TestCase;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ElevenLabs\Api\Service\Exception\Tests;
+namespace ElevenLabs\Api\Service\Tests\Exception;
 
 use ElevenLabs\Api\Service\Exception\ApiServiceError;
 use ElevenLabs\Api\Service\Exception\ConstraintViolations;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ElevenLabs\Api\Service\Pagination\Provider\Tests;
+namespace ElevenLabs\Api\Service\Tests\Pagination\Provider;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Service\Pagination\Pagination;

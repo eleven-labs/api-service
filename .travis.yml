@@ -26,7 +26,7 @@ before_script:
 
 script:
   - vendor/bin/phpunit $PHPUNIT_ARGS --disallow-test-output --colors=always
-  - if [ -n "${PHPCS+x}" ];then php vendor/bin/phpcs;fi
+  - if [ -n "${PHPCS+x}" ];then php vendor/bin/phpcs --standard=.phpcs.xml src;fi
   - if [ -n "${PHPSTAN+x}" ];then sh .travis.analyze.sh ;fi
 
 after_script:
