@@ -107,9 +107,10 @@ class HateoasPagination implements PaginationProviderInterface
         $links = ['next' => null, 'prev' => null, 'first' => null, 'last' => null];
 
         foreach ($headerLinks as $name => $headerLink) {
-            if ("self" === $name) {
+            if ('self' === $name) {
                 continue;
             }
+
             $links[$name] = $headerLink['href'];
         }
 

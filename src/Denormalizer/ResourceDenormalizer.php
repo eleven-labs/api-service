@@ -28,7 +28,7 @@ class ResourceDenormalizer implements DenormalizerInterface
      *
      * @param PaginationProviderInterface|null $paginationProvider
      */
-    public function __construct(PaginationProviderInterface $paginationProvider = null)
+    public function __construct($paginationProvider = null)
     {
         $this->paginationProvider = $paginationProvider;
     }
@@ -62,7 +62,7 @@ class ResourceDenormalizer implements DenormalizerInterface
 
         if ('array' === $this->getSchemaType($schema)) {
             $pagination = null;
-            if ($this->paginationProvider !== null &&
+            if (null !== $this->paginationProvider &&
                 $this->paginationProvider->supportPagination($data, $response, $definition)
             ) {
                 $pagination = $this->paginationProvider->getPagination($data, $response, $definition);
@@ -77,12 +77,10 @@ class ResourceDenormalizer implements DenormalizerInterface
     /** {@inheritdoc} */
     public function supportsDenormalization($data, $type, $format = null)
     {
-        return ($type === ResourceInterface::class);
+        return ResourceInterface::class === $type;
     }
 
     /**
-     * Extract the type for a given JSON Schema
-     *
      * @param \stdClass $schema
      *
      * @throws \RuntimeException

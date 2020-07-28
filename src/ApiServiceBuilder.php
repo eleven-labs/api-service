@@ -29,8 +29,6 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Builder for ApiService instances
- *
  * Class ApiServiceBuilder.
  */
 class ApiServiceBuilder
@@ -240,6 +238,7 @@ class ApiServiceBuilder
      * @param string $schemaPath
      *
      * @throws \Assert\AssertionFailedException
+     * @throws \Psr\Cache\InvalidArgumentException
      *
      * @return ApiService
      */

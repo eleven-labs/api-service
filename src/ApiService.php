@@ -44,7 +44,9 @@ class ApiService
         'returnResponse' => false,
     ];
 
-    /** @var UriInterface */
+    /**
+     * @var UriInterface
+     */
     private $baseUri;
 
     /**
@@ -101,16 +103,8 @@ class ApiService
      *
      * @throws \Assert\AssertionFailedException
      */
-    public function __construct(
-        UriFactory $uriFactory,
-        UriTemplate $uriTemplate,
-        HttpClient $client,
-        MessageFactory $messageFactory,
-        Schema $schema,
-        MessageValidator $messageValidator,
-        SerializerInterface $serializer,
-        array $config = []
-    ) {
+    public function __construct(UriFactory $uriFactory, UriTemplate $uriTemplate, HttpClient $client, MessageFactory $messageFactory, Schema $schema, MessageValidator $messageValidator, SerializerInterface $serializer, array $config = [])
+    {
         $this->uriFactory = $uriFactory;
         $this->uriTemplate = $uriTemplate;
         $this->schema = $schema;
@@ -188,9 +182,6 @@ class ApiService
     }
 
     /**
-     * Configure the base uri from using the API Schema if no baseUri is provided
-     * Or from the baseUri config if provided
-     *
      * @return UriInterface
      */
     private function getBaseUri(): UriInterface
@@ -247,8 +238,6 @@ class ApiService
     }
 
     /**
-     * Create an PSR-7 Request from the API Schema
-     *
      * @param RequestDefinition $definition
      * @param array             $params
      *
@@ -280,13 +269,13 @@ class ApiService
                     $body = $this->serializeRequestBody($value, $contentType);
                     break;
                 case 'formData':
-                    $formData[$name] = sprintf("%s=%s", $name, $value);
+                    $formData[$name] = sprintf('%s=%s', $name, $value);
                     break;
             }
         }
 
         if (!empty($formData)) {
-            $body = implode("&", $formData);
+            $body = implode('&', $formData);
         }
 
         $request = $this->messageFactory->createRequest(
@@ -313,10 +302,7 @@ class ApiService
         $body = null;
         $formData = [];
 
-        /**
-         * @var string    $name
-         * @var Parameter $parameter
-         */
+        /** @var Parameter $parameter */
         foreach ($requestParameters->getIterator() as $name => $parameter) {
             if (isset($parameter->getSchema()->default)) {
                 $value = $parameter->getSchema()->default;
@@ -331,7 +317,7 @@ class ApiService
                         $headers[$name] = $value;
                         break;
                     case 'formData':
-                        $formData[$name] = sprintf("%s=%s", $name, $value);
+                        $formData[$name] = sprintf('%s=%s', $name, $value);
                         break;
                     case 'body':
                         $body = $this->serializeRequestBody($value, $contentType);
@@ -345,13 +331,6 @@ class ApiService
 
 
     /**
-     * Create a complete API Uri from the Base Uri, path and query parameters.
-     *
-     * Example:
-     *  Given a base uri that equal http://domain.tld
-     *  Given the following parameters /pets/{id}, ['id' => 1], ['foo' => 'bar']
-     *  Then the Uri will equal to http://domain.tld/pets/1?foo=bar
-     *
      * @param string $pathTemplate    A template path
      * @param array  $pathParameters  Path parameters
      * @param array  $queryParameters Query parameters
@@ -381,9 +360,6 @@ class ApiService
     }
 
     /**
-     * Transform a given response into a denormalized PHP object
-     * If the config option "returnResponse" is set to TRUE, it return a Response instead
-     *
      * @param ResponseInterface  $response
      * @param ResponseDefinition $definition
      * @param RequestInterface   $request
@@ -392,7 +368,7 @@ class ApiService
      */
     private function getDataFromResponse(ResponseInterface $response, ResponseDefinition $definition, RequestInterface $request)
     {
-        if ($this->config['returnResponse'] === true) {
+        if (true === $this->config['returnResponse']) {
             return $response;
         }
 
@@ -421,7 +397,7 @@ class ApiService
      */
     private function validateRequest(RequestInterface $request, RequestDefinition $definition)
     {
-        if ($this->config['validateRequest'] === false) {
+        if (false === $this->config['validateRequest']) {
             return;
         }
 
@@ -441,7 +417,7 @@ class ApiService
      */
     private function validateResponse(ResponseInterface $response, RequestDefinition $definition)
     {
-        if ($this->config['validateResponse'] === false) {
+        if (false === $this->config['validateResponse']) {
             return;
         }
 

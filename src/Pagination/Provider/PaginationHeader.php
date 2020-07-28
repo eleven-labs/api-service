@@ -88,7 +88,7 @@ class PaginationHeader implements PaginationProviderInterface
     {
         $support = true;
         foreach ($this->paginationHeaders as $headerName) {
-            $support = $support & ($response->getHeaderLine($headerName) !== '');
+            $support = $support & ('' !== $response->getHeaderLine($headerName));
         }
 
         return (bool) $support;
@@ -108,7 +108,7 @@ class PaginationHeader implements PaginationProviderInterface
 
             if (2 === \count($matches) && in_array($matches[1], ['next', 'prev', 'first', 'last'])) {
                 $parts = explode(';', $headerLink);
-                $url = trim($parts[0], " <>");
+                $url = trim($parts[0], ' <>');
                 $links[$matches[1]] = $url;
             }
         }

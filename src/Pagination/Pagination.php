@@ -21,7 +21,7 @@ class Pagination
     /** @var int */
     private $totalPages;
 
-    /** @var null|PaginationLinks */
+    /** @var PaginationLinks|null */
     private $links;
 
     /**
@@ -77,7 +77,7 @@ class Pagination
      */
     public function hasLinks(): bool
     {
-        return ($this->links !== null);
+        return null !== $this->links;
     }
 
     /**
