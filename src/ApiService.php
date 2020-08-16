@@ -14,6 +14,7 @@ use ElevenLabs\Api\Schema;
 use ElevenLabs\Api\Service\Exception\ConstraintViolations;
 use ElevenLabs\Api\Service\Exception\RequestViolations;
 use ElevenLabs\Api\Service\Exception\ResponseViolations;
+use ElevenLabs\Api\Service\Resource\ErrorInterface;
 use ElevenLabs\Api\Service\Resource\Item;
 use ElevenLabs\Api\Service\Resource\ResourceInterface;
 use ElevenLabs\Api\Validator\MessageValidator;
@@ -376,10 +377,11 @@ class ApiService
         if (!$definition->hasBodySchema()) {
             return new Item([], $request->getHeaders(), []);
         }
+        $statusCode = $response->getStatusCode();
 
         return $this->serializer->deserialize(
             (string) $response->getBody(),
-            ResourceInterface::class,
+            $statusCode >= 400 && $statusCode <= 599 ? ErrorInterface::class : ResourceInterface::class,
             DecoderUtils::extractFormatFromContentType($response->getHeaderLine('Content-Type')),
             [
                 'response' => $response,
