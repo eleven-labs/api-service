@@ -58,7 +58,12 @@ class HalProvider implements PaginationProviderInterface
      */
     public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition): bool
     {
+        $totalItems = $this->getValue($data, $this->paginationName['totalItems']);
+        $perPage = $this->getValue($data, $this->paginationName['perPage']);
         foreach ($this->paginationName as $key => $value) {
+            if ('totalPages' === $key && $totalItems < $perPage) {
+                continue;
+            }
             if (null === $this->getValue($data, $value)) {
                 return false;
             }

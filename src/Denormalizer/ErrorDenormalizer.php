@@ -26,12 +26,6 @@ class ErrorDenormalizer implements DenormalizerInterface
         /** @var ResponseInterface $response */
         $response = $context['response'];
 
-        /** @var RequestInterface $request */
-        $request = $context['request'];
-
-        /** @var ResponseDefinition $definition */
-        $definition = $context['responseDefinition'];
-
         return new Error($response->getStatusCode(), $response->getReasonPhrase(), $data['violations'] ?? []);
     }
 
