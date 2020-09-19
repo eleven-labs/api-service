@@ -551,9 +551,7 @@ class ApiServiceTest extends TestCase
             $this->assertEquals(['Content-Type' => "application/json"], $headers);
             $this->assertNull($body);
 
-            $request = $this->getMockBuilder(Request::class)->disableOriginalConstructor()->getMock();
-
-            return $request;
+            return $this->createMock(Request::class);
         });
         $this->httpClient->expects($this->once())->method('sendRequest')->willReturnCallback(function ($request) {
             $this->assertInstanceOf(Request::class, $request);
@@ -562,7 +560,7 @@ class ApiServiceTest extends TestCase
             $stream->expects($this->once())->method('__toString')->willReturn('body');
 
             $response = $this->createMock(ResponseInterface::class);
-            $response->expects($this->once())->method('getStatusCode')->willReturn(200);
+            $response->expects($this->exactly(2))->method('getStatusCode')->willReturn(200);
             $response->expects($this->once())->method('getBody')->willReturn($stream);
             $response->expects($this->once())->method('getHeaderLine')->with('Content-Type')->willReturn('application/json');
 

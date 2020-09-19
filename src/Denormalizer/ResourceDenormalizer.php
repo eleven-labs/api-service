@@ -30,7 +30,7 @@ class ResourceDenormalizer implements DenormalizerInterface
      */
     public function __construct($paginationProvider = null)
     {
-        $this->paginationProvider = $paginationProvider;
+        $this->paginationProvider = '' === $paginationProvider ? null : $paginationProvider;
     }
 
     /** {@inheritdoc} */
