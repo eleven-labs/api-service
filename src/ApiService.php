@@ -182,6 +182,11 @@ class ApiService
         );
     }
 
+    public function getSchema(): Schema
+    {
+        return $this->schema;
+    }
+
     /**
      * @return UriInterface
      */
@@ -246,9 +251,13 @@ class ApiService
      */
     private function createRequestFromDefinition(RequestDefinition $definition, array $params): RequestInterface
     {
-        $contentType = $definition->getContentTypes()[0];
+        $contentType = $definition->getContentTypes()[0] ?? 'application/json';
         $requestParameters = $definition->getRequestParameters();
-        list($path, $query, $headers, $body, $formData) = $this->getDefaultValues($contentType, $requestParameters);
+        list($path, $query, $headers, $body, $formData) = $this->getDefaultValues($requestParameters);
+        $headers = array_merge(
+            $headers,
+            ['Content-Type' => $contentType, 'Accept' => $definition->getAccepts()[0] ?? 'application/json']
+        );
 
         foreach ($params as $name => $value) {
             $requestParameter = $requestParameters->getByName($name);
@@ -289,17 +298,11 @@ class ApiService
         return $request;
     }
 
-    /**
-     * @param string     $contentType
-     * @param Parameters $requestParameters
-     *
-     * @return array
-     */
-    private function getDefaultValues(string $contentType, Parameters $requestParameters): array
+    private function getDefaultValues(Parameters $requestParameters): array
     {
         $path = [];
         $query = [];
-        $headers = ['Content-Type' => $contentType];
+        $headers = [];
         $body = null;
         $formData = [];
 
