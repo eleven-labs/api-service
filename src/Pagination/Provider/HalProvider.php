@@ -59,6 +59,9 @@ class HalProvider implements PaginationProviderInterface
     public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition): bool
     {
         $totalItems = $this->getValue($data, $this->paginationName['totalItems']);
+        if (0 === $totalItems) {
+            return true;
+        }
         $perPage = $this->getValue($data, $this->paginationName['perPage']);
         foreach ($this->paginationName as $key => $value) {
             if ('totalPages' === $key && $totalItems < $perPage) {
@@ -82,10 +85,10 @@ class HalProvider implements PaginationProviderInterface
     public function getPagination(array &$data, ResponseInterface $response, ResponseDefinition $responseDefinition): Pagination
     {
         $paginationLinks = null;
-        $links = $data['_links'];
+        $links = $data['_links'] ?? [];
         $paginationLinks = new PaginationLinks(
-            $links['first']['href'] ?? $links['self']['href'],
-            $links['last']['href'] ?? $links['self']['href'],
+            $links['first']['href'] ?? $links['self']['href'] ?? '',
+            $links['last']['href'] ?? $links['self']['href'] ?? '',
             $links['next']['href'] ?? null,
             $links['prev']['href'] ?? null
         );
@@ -103,10 +106,10 @@ class HalProvider implements PaginationProviderInterface
             unset($data['_links'], $data['_embedded']);
 
             return array_merge($relations, $data);
-        }, $data['_embedded']['item']);
+        }, $data['_embedded']['item'] ?? []);
 
         return new Pagination(
-            $pagination['page'],
+            $pagination['page'] ?? 1,
             $pagination['perPage'],
             $pagination['totalItems'],
             (int) ceil($pagination['totalItems'] / $pagination['perPage']),

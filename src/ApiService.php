@@ -90,22 +90,16 @@ class ApiService
      */
     private $config;
 
-    /**
-     * ApiService constructor.
-     *
-     * @param UriFactory          $uriFactory
-     * @param UriTemplate         $uriTemplate
-     * @param HttpClient          $client
-     * @param MessageFactory      $messageFactory
-     * @param Schema              $schema
-     * @param MessageValidator    $messageValidator
-     * @param SerializerInterface $serializer
-     * @param array               $config
-     *
-     * @throws \Assert\AssertionFailedException
-     */
-    public function __construct(UriFactory $uriFactory, UriTemplate $uriTemplate, HttpClient $client, MessageFactory $messageFactory, Schema $schema, MessageValidator $messageValidator, SerializerInterface $serializer, array $config = [])
-    {
+    public function __construct(
+        UriFactory $uriFactory,
+        UriTemplate $uriTemplate,
+        HttpClient $client,
+        MessageFactory $messageFactory,
+        Schema $schema,
+        MessageValidator $messageValidator,
+        SerializerInterface $serializer,
+        array $config = []
+    ) {
         $this->uriFactory = $uriFactory;
         $this->uriTemplate = $uriTemplate;
         $this->schema = $schema;
@@ -117,15 +111,6 @@ class ApiService
         $this->baseUri = $this->getBaseUri();
     }
 
-    /**
-     * @param string $operationId The name of your operation as described in the API Schema
-     * @param array  $params      An array of request parameters
-     *
-     * @throws ConstraintViolations
-     * @throws \Http\Client\Exception
-     *
-     * @return ResourceInterface|ResponseInterface|array|object
-     */
     public function call(string $operationId, array $params = [])
     {
         $requestDefinition = $this->schema->getRequestDefinition($operationId);
@@ -144,15 +129,6 @@ class ApiService
         );
     }
 
-    /**
-     * @param string $operationId
-     * @param array  $params
-     *
-     * @throws \Exception
-     *
-     * @return Promise
-     *
-     */
     public function callAsync(string $operationId, array $params = []): Promise
     {
         if (!$this->client instanceof HttpAsyncClient) {
@@ -187,9 +163,24 @@ class ApiService
         return $this->schema;
     }
 
-    /**
-     * @return UriInterface
-     */
+    public static function buildQuery(array $params): array
+    {
+        foreach ($params as $key => $param) {
+            if (is_array($param)) {
+                foreach ($param as $k => $v) {
+                    $params[$key.'['.$k.']'] = $v;
+                }
+                unset($params[$key]);
+            }
+            if (false !== stripos($key, '_')) {
+                $params[str_replace('_', '.', $key)] = $param;
+                unset($params[$key]);
+            }
+        }
+
+        return $params;
+    }
+
     private function getBaseUri(): UriInterface
     {
         // Create a base uri from the API Schema
@@ -225,13 +216,6 @@ class ApiService
         }
     }
 
-    /**
-     * @param array $config
-     *
-     * @throws \Assert\AssertionFailedException
-     *
-     * @return array
-     */
     private function getConfig(array $config): array
     {
         $config = array_merge(self::DEFAULT_CONFIG, $config);
@@ -243,12 +227,6 @@ class ApiService
         return array_intersect_key($config, self::DEFAULT_CONFIG);
     }
 
-    /**
-     * @param RequestDefinition $definition
-     * @param array             $params
-     *
-     * @return RequestInterface
-     */
     private function createRequestFromDefinition(RequestDefinition $definition, array $params): RequestInterface
     {
         $contentType = $definition->getContentTypes()[0] ?? 'application/json';
@@ -333,14 +311,6 @@ class ApiService
         return [$path, $query, $headers, $body, $formData];
     }
 
-
-    /**
-     * @param string $pathTemplate    A template path
-     * @param array  $pathParameters  Path parameters
-     * @param array  $queryParameters Query parameters
-     *
-     * @return UriInterface
-     */
     private function buildRequestUri(string $pathTemplate, array $pathParameters, array $queryParameters): UriInterface
     {
         $path = $this->uriTemplate->expand($pathTemplate, $pathParameters);
@@ -349,12 +319,6 @@ class ApiService
         return $this->baseUri->withPath($path)->withQuery($query);
     }
 
-    /**
-     * @param array  $decodedBody
-     * @param string $contentType
-     *
-     * @return string
-     */
     private function serializeRequestBody(array $decodedBody, string $contentType): string
     {
         return $this->serializer->serialize(
@@ -363,13 +327,6 @@ class ApiService
         );
     }
 
-    /**
-     * @param ResponseInterface  $response
-     * @param ResponseDefinition $definition
-     * @param RequestInterface   $request
-     *
-     * @return ResourceInterface|ResponseInterface|array|object
-     */
     private function getDataFromResponse(ResponseInterface $response, ResponseDefinition $definition, RequestInterface $request)
     {
         if (true === $this->config['returnResponse']) {
@@ -394,12 +351,6 @@ class ApiService
         );
     }
 
-    /**
-     * @param RequestInterface  $request
-     * @param RequestDefinition $definition
-     *
-     * @throws ConstraintViolations
-     */
     private function validateRequest(RequestInterface $request, RequestDefinition $definition)
     {
         if (false === $this->config['validateRequest']) {
@@ -414,12 +365,6 @@ class ApiService
         }
     }
 
-    /**
-     * @param ResponseInterface $response
-     * @param RequestDefinition $definition
-     *
-     * @throws ConstraintViolations
-     */
     private function validateResponse(ResponseInterface $response, RequestDefinition $definition)
     {
         if (false === $this->config['validateResponse']) {
