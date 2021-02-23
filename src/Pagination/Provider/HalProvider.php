@@ -98,11 +98,7 @@ class HalProvider implements PaginationProviderInterface
             'totalItems' => $this->getValue($data, $this->paginationName['totalItems']),
         ];
         $data = array_map(function ($data) {
-            $relations = array_map(function ($item) {
-                unset($item['_links']);
-
-                return $item;
-            }, $data['_embedded'] ?? []);
+            $relations = $this->removeEmbedded($data['_embedded'] ?? []);
             unset($data['_links'], $data['_embedded']);
 
             return array_merge($relations, $data);
@@ -139,5 +135,15 @@ class HalProvider implements PaginationProviderInterface
         }
 
         return $value;
+    }
+
+    private function removeEmbedded(array $items): array
+    {
+        return array_map(function ($item) {
+            $relations = $this->removeEmbedded($item['_embedded'] ?? []);
+            unset($item['_links'], $item['_embedded']);
+
+            return array_merge($relations, $item);
+        }, $items);
     }
 }
