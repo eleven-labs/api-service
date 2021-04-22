@@ -254,7 +254,7 @@ class ApiService
                     $headers[$name] = $value;
                     break;
                 case 'body':
-                    $body = $this->serializeRequestBody(array_merge($body, $value), $contentType);
+                    $body = $this->serializeRequestBody(array_merge($body ?? [], $value), $contentType);
                     break;
                 case 'formData':
                     $formData[$name] = sprintf('%s=%s', $name, $value);
@@ -288,21 +288,31 @@ class ApiService
         foreach ($requestParameters->getIterator() as $name => $parameter) {
             switch ($parameter->getLocation()) {
                 case 'path':
-                    $path[$name] = $parameter->getSchema()->default;
+                    if (!empty($parameter->getSchema()->default)) {
+                        $path[$name] = $parameter->getSchema()->default;
+                    }
                     break;
                 case 'query':
-                    $query[$name] = $parameter->getSchema()->default;
+                    if (!empty($parameter->getSchema()->default)) {
+                        $query[$name] = $parameter->getSchema()->default;
+                    }
                     break;
                 case 'header':
-                    $headers[$name] = $parameter->getSchema()->default;
+                    if (!empty($parameter->getSchema()->default)) {
+                        $headers[$name] = $parameter->getSchema()->default;
+                    }
                     break;
                 case 'formData':
-                    $formData[$name] = sprintf('%s=%s', $name, $parameter->getSchema()->default);
+                    if (!empty($parameter->getSchema()->default)) {
+                        $formData[$name] = sprintf('%s=%s', $name, $parameter->getSchema()->default);
+                    }
                     break;
                 case 'body':
-                    $body = array_filter(array_map(function (array $params) {
-                        return $params['default'] ?? null;
-                    }, json_decode(json_encode($parameter->getSchema()->properties), true)));
+                    if (!empty($parameter->getSchema()->properties)) {
+                        $body = array_filter(array_map(function (array $params) {
+                            return $params['default'] ?? null;
+                        }, json_decode(json_encode($parameter->getSchema()->properties), true)));
+                    }
                     break;
             }
         }
