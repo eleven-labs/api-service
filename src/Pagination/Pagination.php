@@ -1,27 +1,37 @@
 <?php
+
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service\Pagination;
 
+/**
+ * Class Pagination.
+ */
 class Pagination
 {
     /** @var int */
     private $page;
+
     /** @var int */
     private $perPage;
+
     /** @var int */
     private $totalItems;
+
     /** @var int */
     private $totalPages;
-    /** @var null */
+
+    /** @var PaginationLinks|null */
     private $links;
 
     /**
-     * @param int $page
-     * @param int $perPage
-     * @param int $totalItems
-     * @param int $totalPages
-     * @param $links
+     * @param int                  $page
+     * @param int                  $perPage
+     * @param int                  $totalItems
+     * @param int                  $totalPages
+     * @param PaginationLinks|null $links
      */
-    public function __construct($page, $perPage, $totalItems, $totalPages, $links = null)
+    public function __construct(int $page, int $perPage, int $totalItems, int $totalPages, ?PaginationLinks $links = null)
     {
         $this->page = $page;
         $this->perPage = $perPage;
@@ -33,7 +43,7 @@ class Pagination
     /**
      * @return int
      */
-    public function getPage()
+    public function getPage(): int
     {
         return $this->page;
     }
@@ -41,7 +51,7 @@ class Pagination
     /**
      * @return int
      */
-    public function getPerPage()
+    public function getPerPage(): int
     {
         return $this->perPage;
     }
@@ -49,7 +59,7 @@ class Pagination
     /**
      * @return int
      */
-    public function getTotalItems()
+    public function getTotalItems(): int
     {
         return $this->totalItems;
     }
@@ -57,20 +67,23 @@ class Pagination
     /**
      * @return int
      */
-    public function getTotalPages()
+    public function getTotalPages(): int
     {
         return $this->totalPages;
     }
 
-    public function hasLinks()
+    /**
+     * @return bool
+     */
+    public function hasLinks(): bool
     {
-        return ($this->links !== null);
+        return null !== $this->links;
     }
 
     /**
-     * @return PaginationLinks
+     * @return PaginationLinks|null
      */
-    public function getLinks()
+    public function getLinks(): ?PaginationLinks
     {
         return $this->links;
     }

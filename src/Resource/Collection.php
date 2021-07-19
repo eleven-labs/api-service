@@ -1,8 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service\Resource;
 
 use ElevenLabs\Api\Service\Pagination\Pagination;
 
+/**
+ * Class Collection.
+ */
 class Collection extends Item implements \IteratorAggregate
 {
     /**
@@ -11,27 +17,37 @@ class Collection extends Item implements \IteratorAggregate
     protected $pagination;
 
     /**
-     * @param array $data
-     * @param array $meta
+     * @param array           $data
+     * @param array           $meta
+     * @param array           $body
      * @param Pagination|null $pagination
      */
-    public function __construct(array $data, array $meta, Pagination $pagination = null)
+    public function __construct(array $data, array $meta, array $body, ?Pagination $pagination = null)
     {
-        parent::__construct($data, $meta);
+        parent::__construct($data, $meta, $body);
         $this->pagination = $pagination;
     }
 
+    /**
+     * @return \ArrayIterator|\Traversable
+     */
     public function getIterator()
     {
         return new \ArrayIterator($this->getData());
     }
 
-    public function hasPagination()
+    /**
+     * @return bool
+     */
+    public function hasPagination(): bool
     {
-        return ($this->pagination !== null);
+        return null !== $this->pagination;
     }
 
-    public function getPagination()
+    /**
+     * @return Pagination|null
+     */
+    public function getPagination(): ?Pagination
     {
         return $this->pagination;
     }

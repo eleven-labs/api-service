@@ -1,0 +1,120 @@
+{
+  "_links": {
+    "self": {
+      "href": "/videos?page=2"
+    },
+    "first": {
+      "href": "/videos?page=1"
+    },
+    "last": {
+      "href": "/videos?page=4"
+    },
+    "prev": {
+      "href": "/videos?page=1"
+    },
+    "next": {
+      "href": "/videos?page=3"
+    },
+    "item": [
+      {
+        "href": "/videos/anthony-bartoletti"
+      },
+      {
+        "href": "/videos/victor-jacobi"
+      },
+      {
+        "href": "/videos/raymond-fisher"
+      }
+    ]
+  },
+  "totalItems": 10,
+  "itemsPerPage": 3,
+  "_embedded": {
+    "item": [
+      {
+        "_links": {
+          "self": {
+            "href": "/videos/anthony-bartoletti"
+          },
+          "category": {
+            "href": "/categories/sed-sollicitudin-purus"
+          }
+        },
+        "_embedded": {
+          "category": {
+            "_links": {
+              "self": {
+                "href": "/categories/sed-sollicitudin-purus"
+              }
+            },
+            "title": "sed sollicitudin purus",
+            "slug": "sed-sollicitudin-purus",
+            "dateCreated": "2019-05-09T22:15:46+00:00",
+            "dateModified": "2019-05-09T22:15:46+00:00"
+          }
+        },
+        "nickName": "Anthony BARTOLETTI",
+        "slug": "anthony-bartoletti",
+        "score": 0,
+        "dateCreated": "2019-05-09T22:15:48+00:00",
+        "dateModified": "2019-05-09T22:15:48+00:00"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/videos/victor-jacobi"
+          },
+          "category": {
+            "href": "/categories/pellentesque-vulputate"
+          }
+        },
+        "_embedded": {
+          "category": {
+            "_links": {
+              "self": {
+                "href": "/categories/pellentesque-vulputate"
+              }
+            },
+            "title": "Pellentesque vulputate",
+            "slug": "pellentesque-vulputate",
+            "dateCreated": "2019-05-09T22:15:46+00:00",
+            "dateModified": "2019-05-09T22:15:46+00:00"
+          }
+        },
+        "nickName": "Victor JACOBI",
+        "slug": "victor-jacobi",
+        "score": 0,
+        "dateCreated": "2019-05-09T22:15:48+00:00",
+        "dateModified": "2019-05-09T22:15:48+00:00"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/videos/raymond-fisher"
+          },
+          "category": {
+            "href": "/categories/sed-sollicitudin-purus"
+          }
+        },
+        "_embedded": {
+          "category": {
+            "_links": {
+              "self": {
+                "href": "/categories/sed-sollicitudin-purus"
+              }
+            },
+            "title": "sed sollicitudin purus",
+            "slug": "sed-sollicitudin-purus",
+            "dateCreated": "2019-05-09T22:15:46+00:00",
+            "dateModified": "2019-05-09T22:15:46+00:00"
+          }
+        },
+        "nickName": "Raymond FISHER",
+        "slug": "raymond-fisher",
+        "score": 0,
+        "dateCreated": "2019-05-09T22:15:48+00:00",
+        "dateModified": "2019-05-09T22:15:48+00:00"
+      }
+    ]
+  }
+}

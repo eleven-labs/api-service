@@ -11,5 +11,5 @@ build:
       tests:
         override:
           - command: php-scrutinizer-run
-          - command: phpcs-run --standard=phpcs.xml.dist
+          - command: phpcs-run --standard=.phpcs.xml
             use_website_config: false

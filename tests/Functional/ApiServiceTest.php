@@ -1,5 +1,8 @@
 <?php
-namespace ElevenLabs\Api\Service\Functional;
+
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests\Functional;
 
 use ElevenLabs\Api\Service\ApiServiceBuilder;
 use ElevenLabs\Api\Service\Exception\RequestViolations;
@@ -14,10 +17,16 @@ use Http\Mock\Client;
 use Http\Promise\Promise;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class ApiServiceTest.
+ *
+ * @group functional
+ */
 class ApiServiceTest extends TestCase
 {
     /** @var string */
     private $schemaFile;
+
     /** @var Client */
     private $httpMockClient;
 
@@ -43,7 +52,7 @@ class ApiServiceTest extends TestCase
                 $body         = json_encode(
                     [
                         'origin' => '127.0.0.1',
-                        'url'    => 'https://httpbin.org/get'
+                        'url'    => 'https://httpbin.org/get',
                     ]
                 )
             )
@@ -51,7 +60,7 @@ class ApiServiceTest extends TestCase
 
         $response = $apiService->call('dumpGetRequest');
 
-        assertThat($response, isInstanceOf(Item::class));
+        $this->assertInstanceOf(Item::class, $response);
     }
 
     /** @test */
@@ -70,7 +79,7 @@ class ApiServiceTest extends TestCase
                 $body         = json_encode(
                     [
                         'origin' => '127.0.0.1',
-                        'url'    => 'https://httpbin.org/get'
+                        'url'    => 'https://httpbin.org/get',
                     ]
                 )
             )
@@ -78,8 +87,8 @@ class ApiServiceTest extends TestCase
 
         $promise = $apiService->callAsync('dumpGetRequest');
 
-        assertThat($promise, isInstanceOf(Promise::class));
-        assertThat($promise->wait(), isInstanceOf(Item::class));
+        $this->assertInstanceOf(Promise::class, $promise);
+        $this->assertInstanceOf(Item::class, $promise->wait());
     }
 
     /** @test */
@@ -107,12 +116,12 @@ class ApiServiceTest extends TestCase
         $apiService->call('dumpGetRequest', [
             'aPath' => 1,
             'aDate' => 'notADateString',
-            'aBody' => ['foo' => 'bar']
+            'aBody' => ['foo' => 'bar'],
         ]);
 
         $request = current($this->httpMockClient->getRequests());
 
-        assertThat($request->getUri()->__toString(), equalTo('https://domain.tld/get/1?aDate=notADateString'));
+        $this->assertEquals('https://domain.tld/get/1?aSlug=test&aDate=notADateString', $request->getUri()->__toString());
     }
 
     /** @test */
@@ -137,6 +146,7 @@ class ApiServiceTest extends TestCase
         $apiService->call('dumpGetRequest');
     }
 
+    /** @test */
     public function itCanPaginate()
     {
         $apiService = ApiServiceBuilder::create()
@@ -159,7 +169,7 @@ class ApiServiceTest extends TestCase
                         '<http://domain.tld?page=10>; rel="last"',
                         '<http://domain.tld?page=4>; rel="next"',
                         '<http://domain.tld?page=2>; rel="prev"',
-                    ]
+                    ],
                 ],
                 '[{"foo": "value 1"}, {"foo": "value 2"}]'
             )
@@ -167,9 +177,9 @@ class ApiServiceTest extends TestCase
 
         $resource = $apiService->call('getFakeCollection');
 
-        assertThat($resource, isInstanceOf(Collection::class));
-        assertThat($resource->hasPagination(), isTrue());
-        assertThat($resource->getPagination(), isInstanceOf(Pagination::class));
+        $this->assertInstanceOf(Collection::class, $resource);
+        $this->assertTrue($resource->hasPagination());
+        $this->assertInstanceOf(Pagination::class, $resource->getPagination());
     }
 
     /** @test */
@@ -187,8 +197,9 @@ class ApiServiceTest extends TestCase
 
         $result = $apiService->call('postResponseWithoutBody');
 
-        assertThat($result, isInstanceOf(Item::class));
-        assertThat($result->getData(), isEmpty());
-        assertThat($result->getMeta(), arrayHasKey('Host'));
+        $this->assertInstanceOf(Item::class, $result);
+        $this->assertEmpty($result->getData());
+        $this->assertEmpty($result->getBody());
+        $this->assertArrayHasKey('Host', $result->getMeta());
     }
 }

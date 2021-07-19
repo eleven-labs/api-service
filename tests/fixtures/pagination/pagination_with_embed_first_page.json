@@ -1,0 +1,86 @@
+{
+  "_links": {
+    "self": {
+      "href": "/videos?page=1"
+    },
+    "first": {
+      "href": "/videos?page=1"
+    },
+    "last": {
+      "href": "/videos?page=2"
+    },
+    "next": {
+      "href": "/videos?page=2"
+    },
+    "item": [
+      {
+        "href": "/videos/emilie-stroman"
+      },
+      {
+        "href": "/videos/coleman-senger"
+      }
+    ]
+  },
+  "totalItems": 4,
+  "itemsPerPage": 2,
+  "_embedded": {
+    "item": [
+      {
+        "_links": {
+          "self": {
+            "href": "/videos/emilie-stroman"
+          },
+          "category": {
+            "href": "/categories/phasellus-pulvinar"
+          }
+        },
+        "_embedded": {
+          "category": {
+            "_links": {
+              "self": {
+                "href": "/categories/phasellus-pulvinar"
+              }
+            },
+            "title": "Phasellus pulvinar",
+            "slug": "phasellus-pulvinar",
+            "dateCreated": "2019-05-09T21:46:33+00:00",
+            "dateModified": "2019-05-09T21:46:33+00:00"
+          }
+        },
+        "nickName": "Emilie STROMAN",
+        "slug": "emilie-stroman",
+        "score": 0,
+        "dateCreated": "2019-05-09T21:46:35+00:00",
+        "dateModified": "2019-05-09T21:46:35+00:00"
+      },
+      {
+        "_links": {
+          "self": {
+            "href": "/videos/coleman-senger"
+          },
+          "category": {
+            "href": "/categories/aenean-bibendum-volutpat-mauris"
+          }
+        },
+        "_embedded": {
+          "category": {
+            "_links": {
+              "self": {
+                "href": "/categories/aenean-bibendum-volutpat-mauris"
+              }
+            },
+            "title": "Aenean bibendum volutpat mauris",
+            "slug": "aenean-bibendum-volutpat-mauris",
+            "dateCreated": "2019-05-09T21:46:33+00:00",
+            "dateModified": "2019-05-09T21:46:33+00:00"
+          }
+        },
+        "nickName": "Coleman SENGER",
+        "slug": "coleman-senger",
+        "score": 0,
+        "dateCreated": "2019-05-09T21:46:35+00:00",
+        "dateModified": "2019-05-09T21:46:35+00:00"
+      }
+    ]
+  }
+}

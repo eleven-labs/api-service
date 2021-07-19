@@ -1,8 +1,16 @@
 <?php
-namespace ElevenLabs\Api\Service\Exception;
 
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests\Exception;
+
+use ElevenLabs\Api\Service\Exception\ConstraintViolations;
+use ElevenLabs\Api\Service\Exception\ResponseViolations;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class ResponseViolationsTest.
+ */
 class ResponseViolationsTest extends TestCase
 {
     /** @test */
@@ -10,6 +18,6 @@ class ResponseViolationsTest extends TestCase
     {
         $exception = new ResponseViolations([]);
 
-        assertThat($exception, isInstanceOf(ConstraintViolations::class));
+        $this->assertInstanceOf(ConstraintViolations::class, $exception);
     }
 }

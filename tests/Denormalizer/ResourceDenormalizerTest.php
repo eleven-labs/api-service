@@ -1,31 +1,35 @@
 <?php
-namespace ElevenLabs\Api\Service\Denormalizer;
+
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests\Denormalizer;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
+use ElevenLabs\Api\Service\Denormalizer\ResourceDenormalizer;
 use ElevenLabs\Api\Service\Pagination\Pagination;
-use ElevenLabs\Api\Service\Pagination\PaginationProvider;
+use ElevenLabs\Api\Service\Pagination\Provider\PaginationProviderInterface;
 use ElevenLabs\Api\Service\Resource\Collection;
 use ElevenLabs\Api\Service\Resource\Item;
-use ElevenLabs\Api\Service\Resource\Resource;
+use ElevenLabs\Api\Service\Resource\ResourceInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
-use Prophecy\Prophecy\ObjectProphecy;
 
+/**
+ * Class ResourceDenormalizerTest.
+ */
 class ResourceDenormalizerTest extends TestCase
 {
     /** @test */
     public function itShouldSupportResourceType()
     {
-        $paginationProvider = $this->prophesize(PaginationProvider::class);
+        $paginationProvider = $this->prophesize(PaginationProviderInterface::class);
         $denormalizer = new ResourceDenormalizer($paginationProvider->reveal());
 
-        assertThat(
-            $denormalizer->supportsDenormalization([], Resource::class),
-            isTrue()
-        );
+        $this->assertTrue($denormalizer->supportsDenormalization([], ResourceInterface::class));
     }
+
     /** @test */
     public function itShouldProvideAResourceOfTypeItem()
     {
@@ -37,22 +41,22 @@ class ResourceDenormalizerTest extends TestCase
         $responseDefinition->hasBodySchema()->willReturn(true);
         $responseDefinition->getBodySchema()->willReturn((object) ['type' => 'object']);
 
-        $paginationProvider = $this->prophesize(PaginationProvider::class);
+        $paginationProvider = $this->prophesize(PaginationProviderInterface::class);
         $paginationProvider->supportPagination()->shouldNotBeCalled();
 
         $denormalizer = new ResourceDenormalizer($paginationProvider->reveal());
         $resource = $denormalizer->denormalize(
             ['foo' => 'bar'],
-            Resource::class,
+            ResourceInterface::class,
             null,
             [
                 'response' => $response->reveal(),
                 'responseDefinition' => $responseDefinition->reveal(),
-                'request' => $request->reveal()
+                'request' => $request->reveal(),
             ]
         );
 
-        assertThat($resource, isInstanceOf(Item::class));
+        $this->assertInstanceOf(Item::class, $resource);
     }
 
     /** @test */
@@ -79,17 +83,17 @@ class ResourceDenormalizerTest extends TestCase
         $responseDefinition = $this->prophesize(ResponseDefinition::class);
         $responseDefinition->hasBodySchema()->willReturn(false);
 
-        $paginationProvider = $this->prophesize(PaginationProvider::class);
+        $paginationProvider = $this->prophesize(PaginationProviderInterface::class);
 
         $denormalizer = new ResourceDenormalizer($paginationProvider->reveal());
         $denormalizer->denormalize(
             [],
-            Resource::class,
+            ResourceInterface::class,
             null,
             [
                 'response' => $response->reveal(),
                 'responseDefinition' => $responseDefinition->reveal(),
-                'request' => $request->reveal()
+                'request' => $request->reveal(),
             ]
         );
     }
@@ -98,7 +102,7 @@ class ResourceDenormalizerTest extends TestCase
     public function itShouldProvideAResourceOfTypeCollection()
     {
         $data = [
-            ['foo' => 'bar']
+            ['foo' => 'bar'],
         ];
 
         $response = $this->prophesize(ResponseInterface::class);
@@ -109,29 +113,29 @@ class ResourceDenormalizerTest extends TestCase
         $responseDefinition->hasBodySchema()->willReturn(true);
         $responseDefinition->getBodySchema()->willReturn((object) ['type' => 'array']);
 
-        $paginationProvider = $this->prophesize(PaginationProvider::class);
+        $paginationProvider = $this->prophesize(PaginationProviderInterface::class);
         $paginationProvider->supportPagination($data, $response, $responseDefinition)->willReturn(false);
 
         $denormalizer = new ResourceDenormalizer($paginationProvider->reveal());
         $resource = $denormalizer->denormalize(
             $data,
-            Resource::class,
+            ResourceInterface::class,
             null,
             [
                 'response' => $response->reveal(),
                 'responseDefinition' => $responseDefinition->reveal(),
-                'request' => $request->reveal()
+                'request' => $request->reveal(),
             ]
         );
 
-        assertThat($resource, isInstanceOf(Collection::class));
+        $this->assertInstanceOf(Collection::class, $resource);
     }
 
     /** @test */
     public function itShouldProvideAResourceOfTypeCollectionWithPagination()
     {
         $data = [
-            ['foo' => 'bar']
+            ['foo' => 'bar'],
         ];
 
         $response = $this->prophesize(ResponseInterface::class);
@@ -144,24 +148,24 @@ class ResourceDenormalizerTest extends TestCase
 
         $pagination = $this->prophesize(Pagination::class);
 
-        $paginationProvider = $this->prophesize(PaginationProvider::class);
+        $paginationProvider = $this->prophesize(PaginationProviderInterface::class);
         $paginationProvider->supportPagination($data, $response, $responseDefinition)->willReturn(true);
         $paginationProvider->getPagination($data, $response, $responseDefinition)->willReturn($pagination);
 
         $denormalizer = new ResourceDenormalizer($paginationProvider->reveal());
         $resource = $denormalizer->denormalize(
             $data,
-            Resource::class,
+            ResourceInterface::class,
             null,
             [
                 'response' => $response->reveal(),
                 'responseDefinition' => $responseDefinition->reveal(),
-                'request' => $request->reveal()
+                'request' => $request->reveal(),
             ]
         );
 
-        assertThat($resource, isInstanceOf(Collection::class));
-        assertThat($resource->getPagination(), equalTo($pagination->reveal()));
+        $this->assertInstanceOf(Collection::class, $resource);
+        $this->assertSame($pagination->reveal(), $resource->getPagination());
     }
 
     /** @test */
@@ -169,9 +173,8 @@ class ResourceDenormalizerTest extends TestCase
     {
         $jsonSchema = (object) [
             'allOf' => [
-                (object) ['type'=> 'object'],
-                (object) ['type'=> 'object'],
-            ]
+                (object) ['type' => 'object'],
+            ],
         ];
 
         $response = $this->prophesize(ResponseInterface::class);
@@ -182,22 +185,23 @@ class ResourceDenormalizerTest extends TestCase
         $responseDefinition->hasBodySchema()->willReturn(true);
         $responseDefinition->getBodySchema()->willReturn($jsonSchema);
 
-        $paginationProvider = $this->prophesize(PaginationProvider::class);
+        $paginationProvider = $this->prophesize(PaginationProviderInterface::class);
         $paginationProvider->supportPagination()->shouldNotBeCalled();
 
         $denormalizer = new ResourceDenormalizer($paginationProvider->reveal());
         $resource = $denormalizer->denormalize(
             ['foo' => 'bar'],
-            Resource::class,
+            ResourceInterface::class,
             null,
             [
                 'response' => $response->reveal(),
                 'responseDefinition' => $responseDefinition->reveal(),
-                'request' => $request->reveal()
+                'request' => $request->reveal(),
             ]
         );
 
         assertThat($resource, isInstanceOf(Item::class));
+        $this->assertSame(['headers' => null], $resource->getMeta());
     }
 
     /** @test */
@@ -215,18 +219,18 @@ class ResourceDenormalizerTest extends TestCase
         $responseDefinition->hasBodySchema()->willReturn(true);
         $responseDefinition->getBodySchema()->willReturn($jsonSchema);
 
-        $paginationProvider = $this->prophesize(PaginationProvider::class);
+        $paginationProvider = $this->prophesize(PaginationProviderInterface::class);
         $paginationProvider->supportPagination()->shouldNotBeCalled();
 
         $denormalizer = new ResourceDenormalizer($paginationProvider->reveal());
-        $resource = $denormalizer->denormalize(
+        $denormalizer->denormalize(
             ['foo' => 'bar'],
-            Resource::class,
+            ResourceInterface::class,
             null,
             [
                 'response' => $response->reveal(),
                 'responseDefinition' => $responseDefinition->reveal(),
-                'request' => $request->reveal()
+                'request' => $request->reveal(),
             ]
         );
     }

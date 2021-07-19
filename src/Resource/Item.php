@@ -1,7 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service\Resource;
 
-class Item implements Resource
+/**
+ * Class Item.
+ */
+class Item implements ResourceInterface
 {
     /**
      * @var array
@@ -13,19 +19,46 @@ class Item implements Resource
      */
     private $meta;
 
-    public function __construct(array $data, array $meta)
+    /**
+     * @var array
+     */
+    private $body;
+
+    /**
+     * Item constructor.
+     *
+     * @param array $data
+     * @param array $meta
+     * @param array $body
+     */
+    public function __construct(array $data, array $meta, array $body)
     {
         $this->data = $data;
         $this->meta = $meta;
+        $this->body = $body;
     }
 
-    public function getData()
+    /**
+     * @return array
+     */
+    public function getData(): array
     {
         return $this->data;
     }
 
-    public function getMeta()
+    /**
+     * @return array
+     */
+    public function getMeta(): array
     {
         return $this->meta;
+    }
+
+    /**
+     * @return array
+     */
+    public function getBody(): array
+    {
+        return $this->body;
     }
 }

@@ -1,23 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service\Pagination\Provider;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use ElevenLabs\Api\Service\Pagination\PaginationLinks;
-use ElevenLabs\Api\Service\Pagination\PaginationProvider;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Class HateoasPagination
- *
- * @package App\Service\Pagination
+ * Class HateoasPagination.
  */
-class HateoasPagination implements PaginationProvider
+class HateoasPagination implements PaginationProviderInterface
 {
     /**
-     * Default mapping for pagination request headers
-     *
      * @var array
      */
     const DEFAULT_PAGINATION_VALUE = [
@@ -28,7 +25,7 @@ class HateoasPagination implements PaginationProvider
         // number of items available in total
         'totalItems' => 'totalItems',
         // number of pages available
-        'totalPages' => 'totalPages'
+        'totalPages' => 'totalPages',
     ];
 
     /**
@@ -36,6 +33,9 @@ class HateoasPagination implements PaginationProvider
      */
     private $paginationHeaders;
 
+    /**
+     * @param array $config
+     */
     public function __construct(array $config = [])
     {
         foreach (self::DEFAULT_PAGINATION_VALUE as $name => $headerName) {
@@ -47,19 +47,20 @@ class HateoasPagination implements PaginationProvider
     }
 
     /**
-     * @param array              $data The decoded response body
+     * @param array              $data
      * @param ResponseInterface  $response
      * @param ResponseDefinition $responseDefinition
      *
      * @return Pagination
      */
-    public function getPagination(array &$data, ResponseInterface $response, ResponseDefinition $responseDefinition)
+    public function getPagination(array &$data, ResponseInterface $response, ResponseDefinition $responseDefinition): Pagination
     {
         $paginationLinks = null;
         if (!empty($data['_links'])) {
             $links = self::parseLinks($data['_links']);
             $paginationLinks = new PaginationLinks($links['first'], $links['last'], $links['next'], $links['prev']);
         }
+
         $count = (int) $data[$this->paginationHeaders['totalPages']];
         $total = (int) $data[$this->paginationHeaders['totalItems']];
         $perPage = (int) $data[$this->paginationHeaders['perPage']];
@@ -70,15 +71,13 @@ class HateoasPagination implements PaginationProvider
     }
 
     /**
-     * Indicate if the pagination is supported
-     *
-     * @param array $data The decoded response body
-     * @param ResponseInterface $response
+     * @param array              $data
+     * @param ResponseInterface  $response
      * @param ResponseDefinition $responseDefinition
      *
      * @return bool
      */
-    public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition)
+    public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition): bool
     {
         foreach ($this->paginationHeaders as $value) {
             if (!isset($data[$value])) {
@@ -91,20 +90,27 @@ class HateoasPagination implements PaginationProvider
             if (isset($links['self']) && isset($links['first']) && isset($links['last'])) {
                 return true;
             }
+
             return false;
         }
 
         return false;
     }
 
-    private static function parseLinks(array $headerLinks)
+    /**
+     * @param array $headerLinks
+     *
+     * @return array
+     */
+    private static function parseLinks(array $headerLinks): array
     {
         $links = ['next' => null, 'prev' => null, 'first' => null, 'last' => null];
 
         foreach ($headerLinks as $name => $headerLink) {
-            if ($name === "self") {
+            if ('self' === $name) {
                 continue;
             }
+
             $links[$name] = $headerLink['href'];
         }
 
