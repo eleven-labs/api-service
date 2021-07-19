@@ -140,10 +140,32 @@ class HalProvider implements PaginationProviderInterface
     private function removeEmbedded(array $items): array
     {
         return array_map(function ($item) {
-            $relations = $this->removeEmbedded($item['_embedded'] ?? []);
-            unset($item['_links'], $item['_embedded']);
+            if ($this->isArray($item)) {
+                $relations = [];
+                foreach ($item as $i) {
+                    $relation = $this->removeEmbedded($i['_embedded'] ?? []);
+                    unset($i['_links'], $i['_embedded']);
+                    $relations[] = array_merge($relation, $i);
+                }
+
+                return $relations;
+            } else {
+                $relations = $this->removeEmbedded($item['_embedded'] ?? []);
+                unset($item['_links'], $item['_embedded']);
+            }
 
             return array_merge($relations, $item);
         }, $items);
+    }
+
+    private function isArray(array $items): bool
+    {
+        foreach (array_keys($items) as $a) {
+            if (!is_int($a)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

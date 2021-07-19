@@ -168,7 +168,11 @@ class ApiService
         foreach ($params as $key => $param) {
             if (is_array($param)) {
                 foreach ($param as $k => $v) {
-                    $params[$key.'['.$k.']'] = $v;
+                    if (is_int($k)) {
+                        $params[$key.'[]'][] = $v;
+                    } else {
+                        $params[$key.'['.$k.']'][] = $v;
+                    }
                 }
                 unset($params[$key]);
             }
@@ -240,7 +244,7 @@ class ApiService
         foreach ($params as $name => $value) {
             $requestParameter = $requestParameters->getByName($name);
             if (null === $requestParameter) {
-                throw new \InvalidArgumentException(sprintf('%s is not a defined request parameter', $name));
+                throw new \InvalidArgumentException(sprintf('%s is not a defined request parameter for operationId %s', $name, $definition->getOperationId()));
             }
 
             switch ($requestParameter->getLocation()) {
