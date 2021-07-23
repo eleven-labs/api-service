@@ -165,24 +165,13 @@ class ApiService
 
     public static function buildQuery(array $params): array
     {
-        foreach ($params as $key => $param) {
-            if (is_array($param)) {
-                foreach ($param as $k => $v) {
-                    if (is_int($k)) {
-                        $params[$key.'[]'][] = $v;
-                    } else {
-                        $params[$key.'['.$k.']'][] = $v;
-                    }
-                }
-                unset($params[$key]);
-            }
-            if (false !== stripos($key, '_')) {
-                $params[str_replace('_', '.', $key)] = $param;
-                unset($params[$key]);
-            }
+        $items = [];
+        foreach (explode('&', rawurldecode(http_build_query($params))) as $param) {
+            $tmp = explode('=', $param);
+            $items[preg_replace('#\[[0-9]*\]#', '', $tmp[0])] = $tmp[1];
         }
 
-        return $params;
+        return $items;
     }
 
     private function getBaseUri(): UriInterface
