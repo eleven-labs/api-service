@@ -165,13 +165,30 @@ class ApiService
 
     public static function buildQuery(array $params): array
     {
-        $items = [];
-        foreach (explode('&', rawurldecode(http_build_query($params))) as $param) {
-            $tmp = explode('=', $param);
-            $items[preg_replace('#\[[0-9]*\]#', '', $tmp[0])] = $tmp[1];
+        $queryParameters = [];
+        foreach ($params as $key => $item) {
+            $queryParameters[str_replace('_', '.', $key)] = $item;
+
+            if (\is_array($item) && self::transformArray($queryParameters, $key, $item)) {
+                unset($queryParameters[$key]);
+            }
         }
 
-        return $items;
+        return $queryParameters;
+    }
+
+    private static function transformArray(&$queryParameters, $key, $item)
+    {
+        foreach ($item as $property => $value) {
+            // if array like ["value 1", "value 2"], do not transform
+            if (\is_int($property)) {
+                return false;
+            }
+            // array like ["key" => "value"], transform
+            $queryParameters[$key.'['.$property.']'] = $value;
+        }
+
+        return true;
     }
 
     private function getBaseUri(): UriInterface
@@ -339,6 +356,11 @@ class ApiService
         if (!$definition->hasBodySchema()) {
             return new Item([], $request->getHeaders(), []);
         }
+
+        if (empty($response->getHeaderLine('Content-Type'))) {
+            return new Item([], $request->getHeaders(), []);
+        }
+
         $statusCode = $response->getStatusCode();
 
         return $this->serializer->deserialize(
