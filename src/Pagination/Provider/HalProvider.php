@@ -14,9 +14,6 @@ use Psr\Http\Message\ResponseInterface;
  */
 class HalProvider implements PaginationProviderInterface
 {
-    /**
-     * @var array
-     */
     const DEFAULT_PAGINATION_VALUE = [
         // current page
         'page' => '_links.self.href.page',
@@ -31,14 +28,8 @@ class HalProvider implements PaginationProviderInterface
         'totalItems' => 'totalItems',
     ];
 
-    /**
-     * @var array
-     */
-    private $paginationName;
+    private array $paginationName;
 
-    /**
-     * @param array $config
-     */
     public function __construct(array $config = [])
     {
         foreach (self::DEFAULT_PAGINATION_VALUE as $name => $value) {
@@ -49,24 +40,19 @@ class HalProvider implements PaginationProviderInterface
         }
     }
 
-    /**
-     * @param array              $data
-     * @param ResponseInterface  $response
-     * @param ResponseDefinition $responseDefinition
-     *
-     * @return bool
-     */
     public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition): bool
     {
         $totalItems = $this->getValue($data, $this->paginationName['totalItems']);
         if (0 === $totalItems) {
             return true;
         }
+
         $perPage = $this->getValue($data, $this->paginationName['perPage']);
         foreach ($this->paginationName as $key => $value) {
-            if ('totalPages' === $key && $totalItems < $perPage) {
+            if ('totalPages' === $key && $totalItems <= $perPage) {
                 continue;
             }
+
             if (null === $this->getValue($data, $value)) {
                 return false;
             }
@@ -75,16 +61,8 @@ class HalProvider implements PaginationProviderInterface
         return isset($data['_embedded']['item']);
     }
 
-    /**
-     * @param array              $data
-     * @param ResponseInterface  $response
-     * @param ResponseDefinition $responseDefinition
-     *
-     * @return Pagination
-     */
     public function getPagination(array &$data, ResponseInterface $response, ResponseDefinition $responseDefinition): Pagination
     {
-        $paginationLinks = null;
         $links = $data['_links'] ?? [];
         $paginationLinks = new PaginationLinks(
             $links['first']['href'] ?? $links['self']['href'] ?? '',
@@ -101,6 +79,10 @@ class HalProvider implements PaginationProviderInterface
             $relations = $this->removeEmbedded($data['_embedded'] ?? []);
             unset($data['_links'], $data['_embedded']);
 
+            foreach ($data as $key => $item) {
+                $data[$key] = \is_array($item) ? $this->removeEmbedded($item) : $item;
+            }
+
             return array_merge($relations, $data);
         }, $data['_embedded']['item'] ?? []);
 
@@ -113,12 +95,6 @@ class HalProvider implements PaginationProviderInterface
         );
     }
 
-    /**
-     * @param array $items
-     * @param array $values
-     *
-     * @return array|int|mixed|null
-     */
     private function getValue(array $items, array $values)
     {
         $value = $items;
@@ -140,21 +116,24 @@ class HalProvider implements PaginationProviderInterface
     private function removeEmbedded(array $items): array
     {
         return array_map(function ($item) {
-            if ($this->isArray($item)) {
-                $relations = [];
-                foreach ($item as $i) {
-                    $relation = $this->removeEmbedded($i['_embedded'] ?? []);
-                    unset($i['_links'], $i['_embedded']);
-                    $relations[] = array_merge($relation, $i);
+            if (\is_array($item)) {
+                if ($this->isArray($item)) {
+                    $relations = [];
+                    foreach ($item as $i) {
+                        $relation = $this->removeEmbedded($i['_embedded'] ?? []);
+                        unset($i['_links'], $i['_embedded']);
+                        $relations[] = array_merge($relation, $i);
+                    }
+
+                    return $relations;
+                } else {
+                    $relations = $this->removeEmbedded($item['_embedded'] ?? []);
+                    unset($item['_links'], $item['_embedded']);
                 }
 
-                return $relations;
-            } else {
-                $relations = $this->removeEmbedded($item['_embedded'] ?? []);
-                unset($item['_links'], $item['_embedded']);
+                return array_merge($relations, $item);
             }
-
-            return array_merge($relations, $item);
+            return $item;
         }, $items);
     }
 

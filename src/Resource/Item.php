@@ -9,56 +9,22 @@ namespace ElevenLabs\Api\Service\Resource;
  */
 class Item implements ResourceInterface
 {
-    /**
-     * @var array
-     */
-    private $data;
+    private array $data;
+    private array $meta;
 
-    /**
-     * @var array
-     */
-    private $meta;
-
-    /**
-     * @var array
-     */
-    private $body;
-
-    /**
-     * Item constructor.
-     *
-     * @param array $data
-     * @param array $meta
-     * @param array $body
-     */
-    public function __construct(array $data, array $meta, array $body)
+    public function __construct(array $data, array $meta)
     {
         $this->data = $data;
         $this->meta = $meta;
-        $this->body = $body;
     }
 
-    /**
-     * @return array
-     */
     public function getData(): array
     {
         return $this->data;
     }
 
-    /**
-     * @return array
-     */
     public function getMeta(): array
     {
         return $this->meta;
-    }
-
-    /**
-     * @return array
-     */
-    public function getBody(): array
-    {
-        return $this->body;
     }
 }

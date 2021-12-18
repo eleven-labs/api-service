@@ -18,23 +18,14 @@ use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
  */
 class ResourceDenormalizer implements DenormalizerInterface
 {
-    /**
-     * @var PaginationProviderInterface|null
-     */
-    private $paginationProvider;
+    private ?PaginationProviderInterface $paginationProvider;
 
-    /**
-     * ResourceDenormalizer constructor.
-     *
-     * @param PaginationProviderInterface|null $paginationProvider
-     */
     public function __construct($paginationProvider = null)
     {
         $this->paginationProvider = '' === $paginationProvider ? null : $paginationProvider;
     }
 
-    /** {@inheritdoc} */
-    public function denormalize($data, $class, $format = null, array $context = array())
+    public function denormalize($data, $type, $format = null, array $context = array())
     {
         /** @var ResponseInterface $response */
         $response = $context['response'];
@@ -58,7 +49,6 @@ class ResourceDenormalizer implements DenormalizerInterface
 
         $schema = $definition->getBodySchema();
         $meta = ['headers' => $response->getHeaders()];
-        $body = $data;
 
         if ('array' === $this->getSchemaType($schema)) {
             $pagination = null;
@@ -68,26 +58,18 @@ class ResourceDenormalizer implements DenormalizerInterface
                 $pagination = $this->paginationProvider->getPagination($data, $response, $definition);
             }
 
-            return new Collection($data, $meta, $body, $pagination);
+            return new Collection($data, $meta, $pagination);
         }
 
-        return new Item($data, $meta, $body);
+        return new Item($data, $meta);
     }
 
-    /** {@inheritdoc} */
     public function supportsDenormalization($data, $type, $format = null)
     {
         return ResourceInterface::class === $type;
     }
 
-    /**
-     * @param \stdClass $schema
-     *
-     * @throws \RuntimeException
-     *
-     * @return string
-     */
-    private function getSchemaType(\stdClass $schema)
+    private function getSchemaType(\stdClass $schema): string
     {
         if (true === isset($schema->type)) {
             return $schema->type;

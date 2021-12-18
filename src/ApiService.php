@@ -163,6 +163,13 @@ class ApiService
         return $this->schema;
     }
 
+    public function setConfig(array $config): self
+    {
+        $this->config = $config;
+
+        return $this;
+    }
+
     public static function buildQuery(array $params): array
     {
         $queryParameters = [];

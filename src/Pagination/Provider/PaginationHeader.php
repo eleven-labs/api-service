@@ -28,16 +28,8 @@ class PaginationHeader implements PaginationProviderInterface
         'totalPages' => 'X-Total-Pages',
     ];
 
-    /**
-     * @var array
-     */
-    private $paginationHeaders;
+    private array $paginationHeaders;
 
-    /**
-     * PaginationHeader constructor.
-     *
-     * @param array $config
-     */
     public function __construct(array $config = [])
     {
         foreach (self::DEFAULT_PAGINATION_HEADERS as $name => $headerName) {
@@ -48,21 +40,14 @@ class PaginationHeader implements PaginationProviderInterface
         }
     }
 
-    /**
-     * @param array              $data
-     * @param ResponseInterface  $response
-     * @param ResponseDefinition $responseDefinition
-     *
-     * @return Pagination
-     */
     public function getPagination(array &$data, ResponseInterface $response, ResponseDefinition $responseDefinition): Pagination
     {
         $paginationLinks = null;
         if ($response->hasHeader('Link')) {
             $links = self::parseHeaderLinks($response->getHeader('Link'));
             $paginationLinks = new PaginationLinks(
-                $links['first'],
-                $links['last'],
+                (string) $links['first'],
+                (string) $links['last'],
                 $links['next'],
                 $links['prev']
             );
@@ -77,13 +62,6 @@ class PaginationHeader implements PaginationProviderInterface
         );
     }
 
-    /**
-     * @param array              $data
-     * @param ResponseInterface  $response
-     * @param ResponseDefinition $responseDefinition
-     *
-     * @return bool
-     */
     public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition): bool
     {
         $support = true;
@@ -94,11 +72,6 @@ class PaginationHeader implements PaginationProviderInterface
         return (bool) $support;
     }
 
-    /**
-     * @param array $headerLinks
-     *
-     * @return array
-     */
     private static function parseHeaderLinks(array $headerLinks): array
     {
         $links = ['next' => null, 'prev' => null];

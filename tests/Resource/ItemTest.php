@@ -16,7 +16,7 @@ class ItemTest extends TestCase
     /** @test */
     public function itIsAResource()
     {
-        $resource = new Item([], [], []);
+        $resource = new Item([], []);
 
         $this->assertInstanceOf(ResourceInterface::class, $resource);
     }
@@ -26,10 +26,9 @@ class ItemTest extends TestCase
     {
         $data = ['foo' => 'bar'];
         $meta = ['headers' => ['bat' => 'baz']];
-        $resource = new Item($data, $meta, $data);
+        $resource = new Item($data, $meta);
 
         $this->assertSame($data, $resource->getData());
         $this->assertSame($meta, $resource->getMeta());
-        $this->assertSame($data, $resource->getBody());
     }
 }

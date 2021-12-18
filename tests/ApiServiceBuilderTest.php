@@ -16,8 +16,7 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class ApiServiceBuilderTest extends TestCase
 {
-    /** @test */
-    public function itShouldBuildAnApiService()
+    public function testItShouldBuildAnApiService()
     {
         $schemaFixture = __DIR__.'/fixtures/httpbin.yml';
         $apiService = ApiServiceBuilder::create()->build('file://'.$schemaFixture);
@@ -25,8 +24,7 @@ class ApiServiceBuilderTest extends TestCase
         $this->assertInstanceOf(ApiService::class, $apiService);
     }
 
-    /** @test */
-    public function itShouldBuildAnApiServiceFromCache()
+    public function testItShouldBuildAnApiServiceFromCache()
     {
         $schemaFile = 'file://fake-schema.yml';
 

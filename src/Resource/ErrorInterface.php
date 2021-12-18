@@ -10,8 +10,6 @@ namespace ElevenLabs\Api\Service\Resource;
 interface ErrorInterface
 {
     public function getCode(): int;
-
     public function getMessage(): string;
-
     public function getViolations(): array;
 }

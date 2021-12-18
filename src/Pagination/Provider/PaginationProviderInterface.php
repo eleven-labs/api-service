@@ -13,21 +13,6 @@ use Psr\Http\Message\ResponseInterface;
  */
 interface PaginationProviderInterface
 {
-    /**
-     * @param array              $data
-     * @param ResponseInterface  $response
-     * @param ResponseDefinition $responseDefinition
-     *
-     * @return bool
-     */
     public function supportPagination(array $data, ResponseInterface $response, ResponseDefinition $responseDefinition): bool;
-
-    /**
-     * @param array              $data
-     * @param ResponseInterface  $response
-     * @param ResponseDefinition $responseDefinition
-     *
-     * @return Pagination
-     */
     public function getPagination(array &$data, ResponseInterface $response, ResponseDefinition $responseDefinition): Pagination;
 }

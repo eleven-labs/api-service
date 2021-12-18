@@ -17,7 +17,7 @@ class CollectionTest extends TestCase
     /** @test */
     public function itIsAResource()
     {
-        $resource = new Collection([], [], []);
+        $resource = new Collection([], []);
 
         assertThat($resource, isInstanceOf(ResourceInterface::class));
     }
@@ -27,11 +27,10 @@ class CollectionTest extends TestCase
     {
         $data = [['foo' => 'bar']];
         $meta = ['headers' => ['bat' => 'baz']];
-        $resource = new Collection($data, $meta, $data);
+        $resource = new Collection($data, $meta);
 
         $this->assertSame($data, $resource->getData());
         $this->assertSame($meta, $resource->getMeta());
-        $this->assertSame($data, $resource->getBody());
         $this->assertFalse($resource->hasPagination());
     }
 
@@ -39,7 +38,7 @@ class CollectionTest extends TestCase
     public function itProvideAPagination()
     {
         $pagination = new Pagination(1, 1, 1, 1);
-        $resource = new Collection([], [], [], $pagination);
+        $resource = new Collection([], [], $pagination);
 
         $this->assertSame($pagination, $resource->getPagination());
     }
@@ -52,7 +51,7 @@ class CollectionTest extends TestCase
             ['value' => 'bar'],
         ];
 
-        $resource = new Collection($data, [], $data);
+        $resource = new Collection($data, []);
 
         $this->assertInstanceOf(\Traversable::class, $resource);
         $this->assertContains($data[0], $resource);

@@ -11,42 +11,24 @@ use ElevenLabs\Api\Service\Pagination\Pagination;
  */
 class Collection extends Item implements \IteratorAggregate
 {
-    /**
-     * @var Pagination|null
-     */
-    protected $pagination;
+    protected ?Pagination $pagination;
 
-    /**
-     * @param array           $data
-     * @param array           $meta
-     * @param array           $body
-     * @param Pagination|null $pagination
-     */
-    public function __construct(array $data, array $meta, array $body, ?Pagination $pagination = null)
+    public function __construct(array $data, array $meta, ?Pagination $pagination = null)
     {
-        parent::__construct($data, $meta, $body);
+        parent::__construct($data, $meta);
         $this->pagination = $pagination;
     }
 
-    /**
-     * @return \ArrayIterator|\Traversable
-     */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->getData());
     }
 
-    /**
-     * @return bool
-     */
     public function hasPagination(): bool
     {
         return null !== $this->pagination;
     }
 
-    /**
-     * @return Pagination|null
-     */
     public function getPagination(): ?Pagination
     {
         return $this->pagination;
