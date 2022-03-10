@@ -1,25 +1,20 @@
 <?php
+
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service\Pagination;
 
+/**
+ * Class PaginationLinks.
+ */
 class PaginationLinks
 {
-    /** @var string */
-    private $first;
-    /** @var string */
-    private $last;
-    /** @var string */
-    private $next;
-    /** @var string */
-    private $prev;
+    private string $first;
+    private string $last;
+    private ?string $next;
+    private ?string $prev;
 
-    /**
-     * PaginationLinks constructor.
-     * @param string $first
-     * @param string $last
-     * @param string $next
-     * @param string $prev
-     */
-    public function __construct($first, $last, $next = null, $prev = null)
+    public function __construct(string $first, string $last, ?string $next = null, ?string $prev = null)
     {
         $this->first = $first;
         $this->last = $last;
@@ -27,44 +22,32 @@ class PaginationLinks
         $this->prev = $prev;
     }
 
-    /**
-     * @return string
-     */
-    public function getFirst()
+    public function getFirst(): string
     {
         return $this->first;
     }
 
-    public function hasNext()
+    public function hasNext(): bool
     {
-        return ($this->next !== null);
+        return null !== $this->next;
     }
 
-    /**
-     * @return string
-     */
-    public function getNext()
+    public function getNext(): ?string
     {
         return $this->next;
     }
 
-    public function hasPrev()
+    public function hasPrev(): bool
     {
-        return ($this->prev !== null);
+        return null !== $this->prev;
     }
 
-    /**
-     * @return string
-     */
-    public function getPrev()
+    public function getPrev(): ?string
     {
         return $this->prev;
     }
 
-    /**
-     * @return string
-     */
-    public function getLast()
+    public function getLast(): string
     {
         return $this->last;
     }

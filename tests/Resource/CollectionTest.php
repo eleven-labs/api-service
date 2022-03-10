@@ -1,16 +1,17 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: guillem
- * Date: 24/08/2016
- * Time: 15:55
- */
 
-namespace ElevenLabs\Api\Service\Resource;
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests\Resource;
 
 use ElevenLabs\Api\Service\Pagination\Pagination;
+use ElevenLabs\Api\Service\Resource\Collection;
+use ElevenLabs\Api\Service\Resource\ResourceInterface;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class CollectionTest.
+ */
 class CollectionTest extends TestCase
 {
     /** @test */
@@ -18,7 +19,7 @@ class CollectionTest extends TestCase
     {
         $resource = new Collection([], []);
 
-        assertThat($resource, isInstanceOf(Resource::class));
+        assertThat($resource, isInstanceOf(ResourceInterface::class));
     }
 
     /** @test */
@@ -28,9 +29,9 @@ class CollectionTest extends TestCase
         $meta = ['headers' => ['bat' => 'baz']];
         $resource = new Collection($data, $meta);
 
-        assertThat($resource->getData(), equalTo($data));
-        assertThat($resource->getMeta(), equalTo($meta));
-        assertThat($resource->hasPagination(), isFalse());
+        $this->assertSame($data, $resource->getData());
+        $this->assertSame($meta, $resource->getMeta());
+        $this->assertFalse($resource->hasPagination());
     }
 
     /** @test */
@@ -39,7 +40,7 @@ class CollectionTest extends TestCase
         $pagination = new Pagination(1, 1, 1, 1);
         $resource = new Collection([], [], $pagination);
 
-        assertThat($resource->getPagination(), equalTo($pagination));
+        $this->assertSame($pagination, $resource->getPagination());
     }
 
     /** @test */
@@ -52,8 +53,8 @@ class CollectionTest extends TestCase
 
         $resource = new Collection($data, []);
 
-        assertThat($resource, isInstanceOf(\Traversable::class));
-        assertThat($resource, contains($data[0]));
-        assertThat($resource, contains($data[1]));
+        $this->assertInstanceOf(\Traversable::class, $resource);
+        $this->assertContains($data[0], $resource);
+        $this->assertContains($data[1], $resource);
     }
 }

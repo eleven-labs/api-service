@@ -1,8 +1,15 @@
 <?php
-namespace ElevenLabs\Api\Service\Pagination;
 
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests\Pagination;
+
+use ElevenLabs\Api\Service\Pagination\PaginationLinks;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class PaginationLinksTest.
+ */
 class PaginationLinksTest extends TestCase
 {
     /** @test */
@@ -13,10 +20,10 @@ class PaginationLinksTest extends TestCase
             'http://domain.tld?page=5'
         );
 
-        assertThat($links->getFirst(), equalTo('http://domain.tld?page=1'));
-        assertThat($links->getLast(), equalTo('http://domain.tld?page=5'));
-        assertThat($links->hasNext(), isFalse());
-        assertThat($links->hasPrev(), isFalse());
+        $this->assertSame('http://domain.tld?page=1', $links->getFirst());
+        $this->assertSame('http://domain.tld?page=5', $links->getLast());
+        $this->assertFalse($links->hasNext());
+        $this->assertFalse($links->hasPrev());
     }
 
     /** @test */
@@ -29,9 +36,9 @@ class PaginationLinksTest extends TestCase
             'http://domain.tld?page=2'
         );
 
-        assertThat($links->hasNext(), isTrue());
-        assertThat($links->hasPrev(), isTrue());
-        assertThat($links->getNext(), equalTo('http://domain.tld?page=3'));
-        assertThat($links->getPrev(), equalTo('http://domain.tld?page=2'));
+        $this->assertTrue($links->hasNext());
+        $this->assertTrue($links->hasPrev());
+        $this->assertSame('http://domain.tld?page=3', $links->getNext());
+        $this->assertSame('http://domain.tld?page=2', $links->getPrev());
     }
 }

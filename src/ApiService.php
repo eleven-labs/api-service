@@ -1,16 +1,22 @@
 <?php
+
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service;
 
 use Assert\Assertion;
 use ElevenLabs\Api\Decoder\DecoderUtils;
+use ElevenLabs\Api\Definition\Parameter;
+use ElevenLabs\Api\Definition\Parameters;
 use ElevenLabs\Api\Definition\RequestDefinition;
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Schema;
 use ElevenLabs\Api\Service\Exception\ConstraintViolations;
 use ElevenLabs\Api\Service\Exception\RequestViolations;
 use ElevenLabs\Api\Service\Exception\ResponseViolations;
+use ElevenLabs\Api\Service\Resource\ErrorInterface;
 use ElevenLabs\Api\Service\Resource\Item;
-use ElevenLabs\Api\Service\Resource\Resource;
+use ElevenLabs\Api\Service\Resource\ResourceInterface;
 use ElevenLabs\Api\Validator\MessageValidator;
 use Http\Client\HttpAsyncClient;
 use Http\Client\HttpClient;
@@ -24,7 +30,7 @@ use Rize\UriTemplate;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * A client that provide API service commands (pretty much like Guzzle)
+ * Class ApiService.
  */
 class ApiService
 {
@@ -36,10 +42,12 @@ class ApiService
         // validate response
         'validateResponse' => false,
         // return response instead of a denormalized object
-        'returnResponse' => false
+        'returnResponse' => false,
     ];
 
-    /** @var UriInterface */
+    /**
+     * @var UriInterface
+     */
     private $baseUri;
 
     /**
@@ -82,16 +90,6 @@ class ApiService
      */
     private $config;
 
-    /**
-     * @param UriFactory $uriFactory The BaseUri of your API
-     * @param UriTemplate $uriTemplate Used to expand Uri pattern in the API definition
-     * @param HttpClient $client An HTTP client
-     * @param MessageFactory $messageFactory
-     * @param Schema $schema
-     * @param MessageValidator $messageValidator
-     * @param SerializerInterface $serializer
-     * @param array $config
-     */
     public function __construct(
         UriFactory $uriFactory,
         UriTemplate $uriTemplate,
@@ -113,45 +111,27 @@ class ApiService
         $this->baseUri = $this->getBaseUri();
     }
 
-    /**
-     * Make a synchronous call to the API
-     *
-     * @param string $operationId The name of your operation as described in the API Schema
-     * @param array $params An array of request parameters
-     *
-     * @return Resource|ResponseInterface
-     */
-    public function call($operationId, array $params = [])
+    public function call(string $operationId, array $params = [])
     {
         $requestDefinition = $this->schema->getRequestDefinition($operationId);
         $request = $this->createRequestFromDefinition($requestDefinition, $params);
         $this->validateRequest($request, $requestDefinition);
 
-        $response =  $this->client->sendRequest($request);
+        $response = $this->client->sendRequest($request);
         $this->validateResponse($response, $requestDefinition);
 
-        $data = $this->getDataFromResponse(
+        return $this->getDataFromResponse(
             $response,
             $requestDefinition->getResponseDefinition(
                 $response->getStatusCode()
             ),
             $request
         );
-
-        return $data;
     }
 
-    /**
-     * Make an asynchronous call to the API
-     *
-     * @param string $operationId The name of your operation as described in the API Schema
-     * @param array $params An array of request parameters
-     *
-     * @return Promise<ResponseInterface|Resource>
-     */
-    public function callAsync($operationId, array $params = [])
+    public function callAsync(string $operationId, array $params = []): Promise
     {
-        if (! $this->client instanceof HttpAsyncClient) {
+        if (!$this->client instanceof HttpAsyncClient) {
             throw new \RuntimeException(
                 sprintf(
                     '"%s" does not support async request',
@@ -178,37 +158,73 @@ class ApiService
         );
     }
 
-    /**
-     * Configure the base uri from using the API Schema if no baseUri is provided
-     * Or from the baseUri config if provided
-     *
-     * @return UriInterface
-     */
-    private function getBaseUri()
+    public function getSchema(): Schema
+    {
+        return $this->schema;
+    }
+
+    public function withReturnResponse(bool $returnResponse): self
+    {
+        $new = clone $this;
+        $new->config['returnResponse'] = $returnResponse;
+
+        return $new;
+    }
+
+    public static function buildQuery(array $params): array
+    {
+        $queryParameters = [];
+        foreach ($params as $key => $item) {
+            $queryParameters[str_replace('_', '.', $key)] = $item;
+
+            if (\is_array($item) && self::transformArray($queryParameters, $key, $item)) {
+                unset($queryParameters[$key]);
+            }
+        }
+
+        return $queryParameters;
+    }
+
+    private static function transformArray(&$queryParameters, $key, $item)
+    {
+        foreach ($item as $property => $value) {
+            // if array like ["value 1", "value 2"], do not transform
+            if (\is_int($property)) {
+                return false;
+            }
+            // array like ["key" => "value"], transform
+            $queryParameters[$key.'['.$property.']'] = $value;
+        }
+
+        return true;
+    }
+
+    private function getBaseUri(): UriInterface
     {
         // Create a base uri from the API Schema
-        if ($this->config['baseUri'] === null) {
-            $scheme = null;
+        if (null === $this->config['baseUri']) {
             $schemes = $this->schema->getSchemes();
-            if ($schemes === null) {
+            if (empty($schemes)) {
                 throw new \LogicException('You need to provide at least on scheme in your API Schema');
             }
 
+            $scheme = null;
             foreach ($this->schema->getSchemes() as $candidate) {
                 // Always prefer https
-                if ($candidate === 'https') {
+                if ('https' === $candidate) {
                     $scheme = 'https';
                 }
-                if ($scheme === null && $candidate === 'http') {
+                if (null === $scheme && 'http' === $candidate) {
                     $scheme = 'http';
                 }
             }
-            if ($scheme === null) {
+
+            if (null === $scheme) {
                 throw new \RuntimeException('Cannot choose a proper scheme from the API Schema. Supported: https, http');
             }
 
             $host = $this->schema->getHost();
-            if ($host === null) {
+            if ('' === $host) {
                 throw new \LogicException('The host in the API Schema should not be null');
             }
 
@@ -218,10 +234,7 @@ class ApiService
         }
     }
 
-    /**
-     * @param array $config
-     */
-    private function getConfig(array $config)
+    private function getConfig(array $config): array
     {
         $config = array_merge(self::DEFAULT_CONFIG, $config);
         Assertion::boolean($config['returnResponse']);
@@ -232,29 +245,20 @@ class ApiService
         return array_intersect_key($config, self::DEFAULT_CONFIG);
     }
 
-    /**
-     * Create an PSR-7 Request from the API Schema
-     *
-     * @param RequestDefinition $definition
-     * @param array $params An array of parameters
-     *
-     * @todo handle default values for request parameters
-     *
-     * @return RequestInterface
-     */
-    private function createRequestFromDefinition(RequestDefinition $definition, array $params)
+    private function createRequestFromDefinition(RequestDefinition $definition, array $params): RequestInterface
     {
-        $contentType = $definition->getContentTypes()[0];
+        $contentType = $definition->getContentTypes()[0] ?? 'application/json';
         $requestParameters = $definition->getRequestParameters();
-        $path = [];
-        $query = [];
-        $headers = ['Content-Type' => $contentType];
-        $body = null;
+        list($path, $query, $headers, $body, $formData) = $this->getDefaultValues($requestParameters);
+        $headers = array_merge(
+            $headers,
+            ['Content-Type' => $contentType, 'Accept' => $definition->getAccepts()[0] ?? 'application/json']
+        );
 
         foreach ($params as $name => $value) {
             $requestParameter = $requestParameters->getByName($name);
-            if ($requestParameter === null) {
-                throw new \InvalidArgumentException($name. ' is not a defined request parameter');
+            if (null === $requestParameter) {
+                throw new \InvalidArgumentException(sprintf('%s is not a defined request parameter for operationId %s', $name, $definition->getOperationId()));
             }
 
             switch ($requestParameter->getLocation()) {
@@ -268,8 +272,16 @@ class ApiService
                     $headers[$name] = $value;
                     break;
                 case 'body':
-                    $body = $this->serializeRequestBody($value, $contentType);
+                    $body = $this->serializeRequestBody(array_merge($body ?? [], $value), $contentType);
+                    break;
+                case 'formData':
+                    $formData[$name] = sprintf('%s=%s', $name, $value);
+                    break;
             }
+        }
+
+        if (!empty($formData)) {
+            $body = implode('&', $formData);
         }
 
         $request = $this->messageFactory->createRequest(
@@ -282,22 +294,51 @@ class ApiService
         return $request;
     }
 
+    private function getDefaultValues(Parameters $requestParameters): array
+    {
+        $path = [];
+        $query = [];
+        $headers = [];
+        $body = null;
+        $formData = [];
 
-    /**
-     * Create a complete API Uri from the Base Uri, path and query parameters.
-     *
-     * Example:
-     *  Given a base uri that equal http://domain.tld
-     *  Given the following parameters /pets/{id}, ['id' => 1], ['foo' => 'bar']
-     *  Then the Uri will equal to http://domain.tld/pets/1?foo=bar
-     *
-     * @param string $pathTemplate A template path
-     * @param array $pathParameters Path parameters
-     * @param array $queryParameters Query parameters
-     *
-     * @return UriInterface
-     */
-    private function buildRequestUri($pathTemplate, array $pathParameters, array $queryParameters)
+        /** @var Parameter $parameter */
+        foreach ($requestParameters->getIterator() as $name => $parameter) {
+            switch ($parameter->getLocation()) {
+                case 'path':
+                    if (!empty($parameter->getSchema()->default)) {
+                        $path[$name] = $parameter->getSchema()->default;
+                    }
+                    break;
+                case 'query':
+                    if (!empty($parameter->getSchema()->default)) {
+                        $query[$name] = $parameter->getSchema()->default;
+                    }
+                    break;
+                case 'header':
+                    if (!empty($parameter->getSchema()->default)) {
+                        $headers[$name] = $parameter->getSchema()->default;
+                    }
+                    break;
+                case 'formData':
+                    if (!empty($parameter->getSchema()->default)) {
+                        $formData[$name] = sprintf('%s=%s', $name, $parameter->getSchema()->default);
+                    }
+                    break;
+                case 'body':
+                    if (!empty($parameter->getSchema()->properties)) {
+                        $body = array_filter(array_map(function (array $params) {
+                            return $params['default'] ?? null;
+                        }, json_decode(json_encode($parameter->getSchema()->properties), true)));
+                    }
+                    break;
+            }
+        }
+
+        return [$path, $query, $headers, $body, $formData];
+    }
+
+    private function buildRequestUri(string $pathTemplate, array $pathParameters, array $queryParameters): UriInterface
     {
         $path = $this->uriTemplate->expand($pathTemplate, $pathParameters);
         $query = http_build_query($queryParameters);
@@ -305,13 +346,7 @@ class ApiService
         return $this->baseUri->withPath($path)->withQuery($query);
     }
 
-    /**
-     * @param array $decodedBody
-     * @param string $contentType
-     *
-     * @return string
-     */
-    private function serializeRequestBody(array $decodedBody, $contentType)
+    private function serializeRequestBody(array $decodedBody, string $contentType): string
     {
         return $this->serializer->serialize(
             $decodedBody,
@@ -319,33 +354,26 @@ class ApiService
         );
     }
 
-    /**
-     * Transform a given response into a denormalized PHP object
-     * If the config option "returnResponse" is set to TRUE, it return a Response instead
-     *
-     * @param ResponseInterface $response
-     * @param ResponseDefinition $definition
-     * @param RequestInterface $request
-     *
-     * @return Resource|ResponseInterface
-     */
-    private function getDataFromResponse(
-        ResponseInterface $response,
-        ResponseDefinition $definition,
-        RequestInterface $request
-    ) {
-        if ($this->config['returnResponse'] === true) {
+    private function getDataFromResponse(ResponseInterface $response, ResponseDefinition $definition, RequestInterface $request)
+    {
+        if (true === $this->config['returnResponse']) {
             return $response;
         }
 
         // @todo Find a better way to handle responses with a body definition
         if (!$definition->hasBodySchema()) {
-            return new Item([], $request->getHeaders());
+            return new Item([], $request->getHeaders(), []);
         }
+
+        if (empty($response->getHeaderLine('Content-Type'))) {
+            return new Item([], $request->getHeaders(), []);
+        }
+
+        $statusCode = $response->getStatusCode();
 
         return $this->serializer->deserialize(
             (string) $response->getBody(),
-            Resource::class,
+            $statusCode >= 400 && $statusCode <= 599 ? ErrorInterface::class : ResourceInterface::class,
             DecoderUtils::extractFormatFromContentType($response->getHeaderLine('Content-Type')),
             [
                 'response' => $response,
@@ -355,18 +383,9 @@ class ApiService
         );
     }
 
-    /**
-     * Validate a Request message
-     * If the config option "withRequestValidation" is set to FALSE it won't validate the Request
-     *
-     * @param RequestInterface $request
-     * @param RequestDefinition $definition
-     *
-     * @throws ConstraintViolations
-     */
     private function validateRequest(RequestInterface $request, RequestDefinition $definition)
     {
-        if ($this->config['validateRequest'] === false) {
+        if (false === $this->config['validateRequest']) {
             return;
         }
 
@@ -378,18 +397,9 @@ class ApiService
         }
     }
 
-    /**
-     * Validate a Response message
-     * If the config option "withResponseValidation" is set to FALSE it won't validate the Response
-     *
-     * @param ResponseInterface $response
-     * @param RequestDefinition $definition
-     *
-     * @throws ConstraintViolations
-     */
     private function validateResponse(ResponseInterface $response, RequestDefinition $definition)
     {
-        if ($this->config['validateResponse'] === false) {
+        if (false === $this->config['validateResponse']) {
             return;
         }
 

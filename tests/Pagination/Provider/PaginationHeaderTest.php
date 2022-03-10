@@ -1,27 +1,44 @@
 <?php
-namespace ElevenLabs\Api\Service\Pagination\Provider;
+
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests\Pagination\Provider;
 
 use ElevenLabs\Api\Definition\ResponseDefinition;
 use ElevenLabs\Api\Service\Pagination\Pagination;
 use ElevenLabs\Api\Service\Pagination\PaginationLinks;
+use ElevenLabs\Api\Service\Pagination\Provider\PaginationHeader;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * Class PaginationHeaderTest.
+ */
 class PaginationHeaderTest extends TestCase
 {
     /** @test */
     public function itShouldSupportPaginationHeader()
     {
-        $response = $this->prophesize(ResponseInterface::class);
-        $response->getHeaderLine('X-Page')->willReturn('1');
-        $response->getHeaderLine('X-Per-Page')->willReturn('10');
-        $response->getHeaderLine('X-Total-Items')->willReturn('100');
-        $response->getHeaderLine('X-Total-Pages')->willReturn('10');
+        $response = $this->createMock(ResponseInterface::class);
+        $response->expects($this->exactly(4))->method('getHeaderLine')->willReturnCallback(function ($name) {
+            if ('X-Page' === $name) {
+                return '1';
+            }
+            if ('X-Per-Page' === $name) {
+                return '10';
+            }
+            if ('X-Total-Items' === $name) {
+                return '100';
+            }
+            if ('X-Total-Pages' === $name) {
+                return '10';
+            }
+        });
 
         $definition = $this->prophesize(ResponseDefinition::class);
         $provider = new PaginationHeader();
 
-        assertThat($provider->supportPagination([], $response->reveal(), $definition->reveal()), isTrue());
+        $this->assertTrue($provider->supportPagination([], $response, $definition->reveal()));
     }
 
     /** @test */
@@ -41,11 +58,11 @@ class PaginationHeaderTest extends TestCase
         $provider = new PaginationHeader();
         $pagination = $provider->getPagination($data, $response->reveal(), $definition->reveal());
 
-        assertThat($pagination, isInstanceOf(Pagination::class));
-        assertThat($pagination->getPage(), self::equalTo(1));
-        assertThat($pagination->getPerPage(), self::equalTo(10));
-        assertThat($pagination->getTotalItems(), self::equalTo(100));
-        assertThat($pagination->getTotalPages(), self::equalTo(10));
+        $this->assertInstanceOf(Pagination::class, $pagination);
+        $this->assertSame(1, $pagination->getPage());
+        $this->assertSame(10, $pagination->getPerPage());
+        $this->assertSame(100, $pagination->getTotalItems());
+        $this->assertSame(10, $pagination->getTotalPages());
     }
 
     /** @test */
@@ -72,11 +89,11 @@ class PaginationHeaderTest extends TestCase
         $provider = new PaginationHeader($config);
         $pagination = $provider->getPagination($data, $response->reveal(), $definition->reveal());
 
-        assertThat($pagination, isInstanceOf(Pagination::class));
-        assertThat($pagination->getPage(), self::equalTo(1));
-        assertThat($pagination->getPerPage(), self::equalTo(10));
-        assertThat($pagination->getTotalItems(), self::equalTo(100));
-        assertThat($pagination->getTotalPages(), self::equalTo(10));
+        $this->assertInstanceOf(Pagination::class, $pagination);
+        $this->assertSame(1, $pagination->getPage());
+        $this->assertSame(10, $pagination->getPerPage());
+        $this->assertSame(100, $pagination->getTotalItems());
+        $this->assertSame(10, $pagination->getTotalPages());
     }
 
     /** @test */
@@ -106,10 +123,10 @@ class PaginationHeaderTest extends TestCase
 
         $paginationLinks = $pagination->getLinks();
 
-        assertThat($paginationLinks, isInstanceOf(PaginationLinks::class));
-        assertThat($paginationLinks->getFirst(), equalTo('http://domain.tld?page=1'));
-        assertThat($paginationLinks->getLast(), equalTo('http://domain.tld?page=10'));
-        assertThat($paginationLinks->getNext(), equalTo('http://domain.tld?page=4'));
-        assertThat($paginationLinks->getPrev(), equalTo('http://domain.tld?page=2'));
+        $this->assertInstanceOf(PaginationLinks::class, $paginationLinks);
+        $this->assertSame('http://domain.tld?page=1', $paginationLinks->getFirst());
+        $this->assertSame('http://domain.tld?page=10', $paginationLinks->getLast());
+        $this->assertSame('http://domain.tld?page=4', $paginationLinks->getNext());
+        $this->assertSame('http://domain.tld?page=2', $paginationLinks->getPrev());
     }
 }

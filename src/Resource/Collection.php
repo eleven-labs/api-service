@@ -1,37 +1,35 @@
 <?php
+
+declare(strict_types=1);
+
 namespace ElevenLabs\Api\Service\Resource;
 
 use ElevenLabs\Api\Service\Pagination\Pagination;
 
+/**
+ * Class Collection.
+ */
 class Collection extends Item implements \IteratorAggregate
 {
-    /**
-     * @var Pagination|null
-     */
-    protected $pagination;
+    protected ?Pagination $pagination;
 
-    /**
-     * @param array $data
-     * @param array $meta
-     * @param Pagination|null $pagination
-     */
-    public function __construct(array $data, array $meta, Pagination $pagination = null)
+    public function __construct(array $data, array $meta, ?Pagination $pagination = null)
     {
         parent::__construct($data, $meta);
         $this->pagination = $pagination;
     }
 
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->getData());
     }
 
-    public function hasPagination()
+    public function hasPagination(): bool
     {
-        return ($this->pagination !== null);
+        return null !== $this->pagination;
     }
 
-    public function getPagination()
+    public function getPagination(): ?Pagination
     {
         return $this->pagination;
     }

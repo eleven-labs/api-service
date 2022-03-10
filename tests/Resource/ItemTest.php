@@ -1,8 +1,16 @@
 <?php
-namespace ElevenLabs\Api\Service\Resource;
 
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests\Resource;
+
+use ElevenLabs\Api\Service\Resource\Item;
+use ElevenLabs\Api\Service\Resource\ResourceInterface;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class ItemTest.
+ */
 class ItemTest extends TestCase
 {
     /** @test */
@@ -10,7 +18,7 @@ class ItemTest extends TestCase
     {
         $resource = new Item([], []);
 
-        assertThat($resource, isInstanceOf(Resource::class));
+        $this->assertInstanceOf(ResourceInterface::class, $resource);
     }
 
     /** @test */
@@ -20,7 +28,7 @@ class ItemTest extends TestCase
         $meta = ['headers' => ['bat' => 'baz']];
         $resource = new Item($data, $meta);
 
-        assertThat($resource->getData(), equalTo($data));
-        assertThat($resource->getMeta(), equalTo($meta));
+        $this->assertSame($data, $resource->getData());
+        $this->assertSame($meta, $resource->getMeta());
     }
 }

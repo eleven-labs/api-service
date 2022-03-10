@@ -1,8 +1,16 @@
 <?php
-namespace ElevenLabs\Api\Service\Pagination;
 
+declare(strict_types=1);
+
+namespace ElevenLabs\Api\Service\Tests\Pagination;
+
+use ElevenLabs\Api\Service\Pagination\Pagination;
+use ElevenLabs\Api\Service\Pagination\PaginationLinks;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Class PaginationTest.
+ */
 class PaginationTest extends TestCase
 {
     /** @test */
@@ -10,11 +18,11 @@ class PaginationTest extends TestCase
     {
         $pagination = new Pagination(2, 20, 100, 5);
 
-        assertThat($pagination->getPage(), equalTo(2));
-        assertThat($pagination->getPerPage(), equalTo(20));
-        assertThat($pagination->getTotalItems(), equalTo(100));
-        assertThat($pagination->getTotalPages(), equalTo(5));
-        assertThat($pagination->hasLinks(), isFalse());
+        $this->assertSame(2, $pagination->getPage());
+        $this->assertSame(20, $pagination->getPerPage());
+        $this->assertSame(100, $pagination->getTotalItems());
+        $this->assertSame(5, $pagination->getTotalPages());
+        $this->assertFalse($pagination->hasLinks());
     }
 
     /** @test */
@@ -23,6 +31,6 @@ class PaginationTest extends TestCase
         $links = $this->prophesize(PaginationLinks::class);
         $pagination = new Pagination(2, 20, 100, 5, $links->reveal());
 
-        assertThat($pagination->getLinks(), isInstanceOf(PaginationLinks::class));
+        $this->assertInstanceOf(PaginationLinks::class, $pagination->getLinks());
     }
 }
