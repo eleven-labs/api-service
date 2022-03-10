@@ -163,11 +163,12 @@ class ApiService
         return $this->schema;
     }
 
-    public function setConfig(array $config): self
+    public function withReturnResponse(bool $returnResponse): self
     {
-        $this->config = $config;
+        $new = clone $this;
+        $new->config['returnResponse'] = $returnResponse;
 
-        return $this;
+        return $new;
     }
 
     public static function buildQuery(array $params): array
